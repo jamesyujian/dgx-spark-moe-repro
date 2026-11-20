@@ -1,4 +1,12 @@
-﻿# CHANGELOG
+# CHANGELOG
+
+## v1.0.5 — 2026-11-20（改名 `dgx-spark-moe-repro` + README 三秒版）
+
+- **仓库/包名**：`sm12x-repro` → **`dgx-spark-moe-repro`**。理由：保留 `repro` 的可复现信号，同时用 `dgx-spark` / `gb10` 承接搜索命中；名字窄不要紧，`topics` 补足。
+- **仓库 description（设为 GitHub 仓库简介，会进入搜索结果摘要）**：`Precision and reproducibility baselines for MoE inference on SM120 (RTX PRO 5000/4500/5080) and SM121 (GB10/DGX Spark), covering vLLM, SGLang, and llama.cpp.`
+- **仓库 topics（12 个）**：`dgx-spark` `gb10` `sm120` `sm121` `nvfp4` `fp8` `moe` `vllm` `sglang` `llama-cpp` `reproducibility` `precision`
+- **README 首段重写**：删掉原来的定位叙事，改成一张"本仓库里有什么"的表 + 一句三秒导航（公告 / 闭合状态表 / 数据索引 / harness / 坑档 / 原始 JSON 路径 / 参考跑），中英同步。
+- **包结构**：zip 顶层目录改为 `dgx-spark-moe-repro/`；`N1_data_index.md` 的状态复查结论沿用 v1.0.4。
 
 ## v1.0.4 — 2026-11-20（发布前数值审计 7 项 + 根目录数据索引）
 

@@ -2,6 +2,14 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.0.5 — 2026-11-20 (renamed to `dgx-spark-moe-repro` + three-second README)
+
+- **Repository / kit name**: `sm12x-repro` → **`dgx-spark-moe-repro`**. Keeps the `repro` signal while `dgx-spark` / `gb10` carry the search intent; a narrow name is fine because topics cover the rest.
+- **Repository description (what GitHub shows in search results)**: `Precision and reproducibility baselines for MoE inference on SM120 (RTX PRO 5000/4500/5080) and SM121 (GB10/DGX Spark), covering vLLM, SGLang, and llama.cpp.`
+- **Topics (12)**: `dgx-spark` `gb10` `sm120` `sm121` `nvfp4` `fp8` `moe` `vllm` `sglang` `llama-cpp` `reproducibility` `precision`
+- **README opening rewritten**: the positioning prose is gone; it is now a "what is in this repository" table plus a one-line navigation (advisory / closure table / data index / harness / pitfall notes / raw JSON paths / reference runs), Chinese and English in sync.
+- **Packaging**: the zip root folder is now `dgx-spark-moe-repro/`; the index status findings from v1.0.4 carry over unchanged.
+
 ## v1.0.4 — 2026-11-20 (pre-publication numeric audit, 7 items + a root data index)
 
 **Added**: root `N1_data_index.md` (+ English twin) — 37 rows, one per conclusion, with only "conclusion → raw file → conditions → status". No explanation, no recommendation. Four status marks: ✔ recomputed from the raw file on 2026-11-20 / ○ file present, not recomputed this round / ⏳ on 101/102 (both powered off) / ⛔ physically unreachable or no image.

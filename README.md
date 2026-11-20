@@ -1,10 +1,22 @@
-﻿# sm12x-repro（SM120 / SM121 精度与复现实验包）
+# dgx-spark-moe-repro
 
 **English**: [`README.en.md`](README.en.md) ｜ 中文（本文件为准）
 
-本仓库是 **N1 精度安全公告**的可复现配套包：公告给结论，这里给"能自己跑出同样结论"的材料。
+> MoE 推理在 **SM120（RTX PRO 5000 / 4500 / 5080）** 与 **SM121（GB10 / DGX Spark）** 上的精度与复现基线，覆盖 **vLLM / SGLang / llama.cpp**。
 
-**一句话定位**：不是推理框架、不是 benchmark 榜单，而是**一组固定的 prompt 集 + 固定起服参数 + 判分脚本 + 期望指纹**，用来验证「某个后端在某个栈上是否确定、是否比另一个后端差、差多少」。
+## 本仓库里有什么
+
+| 有什么 | 在哪 |
+|---|---|
+| **N1 精度安全公告（正文）** | `docs/N1_公告_v3_公开版.md`（中文，约 590 行）；英文执行摘要 `docs/N1_v3_executive_summary.en.md` |
+| **闭合状态表** | `docs/N1_闭合状态表.md` — 每条结论现在能写到什么程度、哪一格还空着 |
+| **数据索引（先看这个）** | `N1_data_index.md` — 每条结论 → 原始文件 / 条件 / 状态，37 行，不解释 |
+| **复现 harness** | `scripts/serve_fp8_tp2.sh`、`serve_nvfp4_tp1.sh`、`probe_20_prompts.py`、`eval_gsm8k.py`、`attrib_tp_vs_dtype.py`、`run_matrix.sh` |
+| **坑档 / 噪声纪律** | `docs/NOISE_POLICY.md`、`docs/EVIDENCE_INDEX.md`、`docs/SE-03_teacher_forcing_verdict.md` |
+| **原始 JSON 落盘路径** | 115 `$BASE/d4/results/s104i_*`、`s104j_*`、`s104k_*`；101 `$BASE/d4/results/s104x3_det_*_sm121_101_r{1..10}`；逐条见 `N1_data_index.md` |
+| **自检用参考跑** | `data/reference_fp8_tp2/`、`data/reference_replay_1120/`、`data/reference_crossmachine_nvfp4/`（含 meta 与期望 md5） |
+
+**三秒导航**：要复核某个数字 → `N1_data_index.md` 找到行、按"原始文件"去那台机器；要自己跑一遍 → 跳到 §2 快速开始；要看结论边界 → `docs/N1_闭合状态表.md`。
 
 ---
 

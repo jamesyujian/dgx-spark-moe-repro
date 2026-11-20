@@ -1,10 +1,22 @@
-# sm12x-repro (SM120 / SM121 precision & reproducibility kit)
+# dgx-spark-moe-repro
 
 **中文**: [`README.md`](README.md) (authoritative) | **English**: this file
 
-This repository is the reproducible companion to the **N1 precision-safety advisory**: the advisory states conclusions, this kit supplies the material that lets you reach the same conclusions yourself.
+> Precision and reproducibility baselines for MoE inference on **SM120 (RTX PRO 5000 / 4500 / 5080)** and **SM121 (GB10 / DGX Spark)**, covering **vLLM, SGLang and llama.cpp**.
 
-**One-line positioning**: it is not an inference framework and not a leaderboard. It is a **fixed prompt set + fixed serve parameters + grading scripts + expected fingerprints**, used to answer "is this backend deterministic on this stack, is it worse than another backend, and by how much".
+## What is in this repository
+
+| Item | Where |
+|---|---|
+| **N1 precision-safety advisory (body)** | `docs/N1_公告_v3_公开版.md` (Chinese, ~590 lines); English executive summary `docs/N1_v3_executive_summary.en.md` |
+| **Closure status table** | `docs/N1_闭合状态表.md` — how far each conclusion can currently be stated, and which cell is still empty |
+| **Data index (start here)** | `N1_data_index.md` — each conclusion → raw file / conditions / status, 37 rows, no prose |
+| **Reproduction harness** | `scripts/serve_fp8_tp2.sh`, `serve_nvfp4_tp1.sh`, `probe_20_prompts.py`, `eval_gsm8k.py`, `attrib_tp_vs_dtype.py`, `run_matrix.sh` |
+| **Pitfall notes / noise discipline** | `docs/NOISE_POLICY.md`, `docs/EVIDENCE_INDEX.en.md`, `docs/SE-03_teacher_forcing_verdict.en.md` |
+| **Raw JSON locations** | 115 `$BASE/d4/results/s104i_*`, `s104j_*`, `s104k_*`; 101 `$BASE/d4/results/s104x3_det_*_sm121_101_r{1..10}`; row by row in `N1_data_index.md` |
+| **Reference runs for self-checks** | `data/reference_fp8_tp2/`, `data/reference_replay_1120/`, `data/reference_crossmachine_nvfp4/` (meta + expected md5) |
+
+**Three-second navigation**: re-check a number → open `N1_data_index.md`, take its row and the raw file on that machine; run it yourself → §2 quick start; check the claim's boundary → `docs/N1_闭合状态表.md`.
 
 ---
 
