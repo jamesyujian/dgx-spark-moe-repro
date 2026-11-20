@@ -9,7 +9,7 @@
 
 | Advisory item | Conclusion | How to reproduce | Raw artifact |
 |---|---|---|---|
-| §1.1 L1 banned | non-ue8m0 fed straight into DeepGEMM → hard crash (`gemm.hpp:346`), not silent NaN | **run it from this kit**: `python3 scripts/s104_semantic.py` (needs DeepGEMM 2.8.1 + a non-ue8m0 FP8 checkpoint) | `data/reference_l1_semantic/s104_result_sm120.json` (8 verdicts, last one `error`; provenance and sha256 in `README.txt` beside it) |
+| §1.1 L1 banned | non-ue8m0 fed straight into DeepGEMM → hard crash (SM120 `gemm.hpp:346`; SM121 gives `:415` on `0.2.3.post2`), not silent NaN | **run it from this kit**: `python3 scripts/s104_semantic.py` (needs DeepGEMM + a non-ue8m0 FP8 checkpoint; line numbers move with the version) | `data/reference_l1_semantic/s104_result_sm120.json` (SM120 / 2.8.1, last one `error`) + `s104_result_sm121_dg023post2.json` (SM121 rerun, last one `error`; provenance and sha256 in `README.txt` beside them) |
 | §1 FP8 L2 usable | block-scaled 128×128 W8A8 runs | `scripts/run_matrix.sh $MODEL 8230 fp8_tp2 --tensor-parallel-size 2 --moe-backend triton` | `$BASE/s104b/results/s104b_fp8_tp2_{triton,tc}.json` |
 | §1 L3 three backends refuse | `hpc` / `cutlass` / `flashinfer_cutlass` each refuse | same as above, change `--moe-backend` | `$BASE/logs/fp8_matrix/{single_hpc,single_cutlass,p3_single_flashinfer_cutlass}.log` |
 | §1 GSM8K gap −0.38 pp | indistinguishable at same version and same TP | `scripts/eval_gsm8k.py` twice (one BF16, one FP8) | `$BASE/results/gsm8k_bf16_run2.jsonl`, `$BASE/s104b/results/gsm8k_fp8_tp2_triton.jsonl` |

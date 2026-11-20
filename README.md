@@ -14,7 +14,7 @@
 | **复现 harness** | `scripts/serve_fp8_tp2.sh`、`serve_nvfp4_tp1.sh`、`probe_20_prompts.py`、`eval_gsm8k.py`、`attrib_tp_vs_dtype.py`、`run_matrix.sh`；**L1 判定原件** `scripts/s104_semantic.py`（非 ue8m0 直连 DeepGEMM 的 8 用例，可独立跑） |
 | **坑档 / 噪声纪律** | `docs/NOISE_POLICY.md`、`docs/EVIDENCE_INDEX.md`、`docs/SE-03_teacher_forcing_verdict.md` |
 | **原始 JSON 落盘路径** | 115 `$BASE/d4/results/s104i_*`、`s104j_*`、`s104k_*`；101 `$BASE/d4/results/s104x3_det_*_sm121_101_r{1..10}`、`$BASE/results/sglang_result_*`；逐条见 `N1_data_index.md` |
-| **自检用参考跑** | `data/reference_fp8_tp2/`、`data/reference_replay_1120/`、`data/reference_crossmachine_nvfp4/`、**`data/reference_l1_semantic/`**（L1 8 用例的 8 条 verdict，末条即 `gemm.hpp:346`）（含 meta 与期望 md5） |
+| **自检用参考跑** | `data/reference_fp8_tp2/`、`data/reference_replay_1120/`、`data/reference_crossmachine_nvfp4/`、**`data/reference_l1_semantic/`**（L1 8 用例的两份 verdict：SM120 / 2.8.1 的 `s104_result_sm120.json`，末条 `gemm.hpp:346`；SM121 / 0.2.3.post2 的 `s104_result_sm121_dg023post2.json`，末条 `gemm.hpp:415`）（含 meta 与期望 md5） |
 
 **三秒导航**：要复核某个数字 → `N1_data_index.md` 找到行、按"原始文件"去那台机器；要自己跑一遍 → 跳到 §2 快速开始；要看结论边界 → `docs/N1_闭合状态表.md`。
 
@@ -48,7 +48,7 @@ data/
   prompts/README.md            每题考什么、判分类型、max_tokens
   fingerprints/expected.md5    期望指纹（内容投影 md5 + 原始文件 md5），附计算口径
   reference_fp8_tp2/           同一栈的参考跑（r1–r3 + meta），可离线复算指纹
-  reference_l1_semantic/       N1 §1.1 L1 的 8 条 verdict（`s104_result_sm120.json` + 来源说明）
+  reference_l1_semantic/       N1 §1.1 L1 的 8 条 verdict（`s104_result_sm120.json` + `s104_result_sm121_dg023post2.json` + 来源说明）
   gsm8k/README.md              GSM8K 1319 子集从哪来、怎么切、许可注意
 
 scripts/

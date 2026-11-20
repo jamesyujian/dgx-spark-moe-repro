@@ -66,7 +66,7 @@ Ten identical repeats inside one round produced 4 distinct answers (`3584`×1, `
 
 ## Pre-publication numeric audit (v3 revision 7, 2026-11-20)
 
-Nine claims were recomputed from the raw JSON. No measured data changed; wording, pairing and counting did.
+Ten claims were recomputed from the raw JSON (the tenth is a rerun, added 2026-11-20). No measured data changed; wording, pairing and counting did.
 
 | # | What was audited | Recomputed result | Where it was fixed |
 |---|---|---|---|
@@ -78,7 +78,8 @@ Nine claims were recomputed from the raw JSON. No measured data changed; wording
 | 6 | GB vs GiB | `71,926,861,539 B ÷ 2^30 = 66.98 GiB`; `48,935 MiB ÷ 1024 = 47.79 GiB`; 65.4 GiB only appears if the 1.1 factor is misapplied | §10.2 footnote |
 | 7 | "TP is not the source" | What the experiment rules out is "TP as an *independent* source"; the TP × NVFP4-kernel interaction was never separated | §5.3 / §10.2 tightened; §8 wording row |
 | 8 | Can the §6 / §0.5 SGLang numbers be recomputed from the artifacts? | From six `sglang_result_*.json` and six `gsm8k_*.jsonl`: majority vote **b=25 / c=20 / p=0.5515** (matches the text); per-pair throughput drop `(marlin−cutlass)/marlin` = 5.78 % / 7.02 % / 6.13 %, mean **6.31 %** (matches). **Denominator matters: with `cutlass` as denominator the same data gives +6.74 %.** Side finding: **there is no `r1`** — the three pairs are the `sm121` baseline plus `r2` and `r3` | §6 (explicit file names + denominator block); §0.5 denominator note; §8 rows invalidating single-pair McNemar and the "r1" wording |
-| 9 | Are the §1.1 L1 eight-case artifacts still around? | **Recovered**: `scripts/s104_semantic.py` (the original 10,443 B script, 7 cases + one subprocess-isolated case) and `data/reference_l1_semantic/s104_result_sm120.json` (8 verdicts, last one `error` = `gemm.hpp:346`) | §1.1 pointers to in-kit paths; data index row 1 ⛔ → ✔; the SM121-side output is still unpersisted (row 2 stays ⛔) |
+| 9 | Are the §1.1 L1 eight-case artifacts still around? | **Recovered**: `scripts/s104_semantic.py` (the original 10,443 B script, 7 cases + one subprocess-isolated case) and `data/reference_l1_semantic/s104_result_sm120.json` (8 verdicts, last one `error` = `gemm.hpp:346`) | §1.1 pointers to in-kit paths; data index row 1 ⛔ → ✔ |
+| 10 | Is SM121 really "silently all-NaN"? | The same script was rerun on 101 (GB10) with **`deep_gemm 0.2.3.post2`** (container `sglang-sm12x:f832b5c39559`). 8 cases: **7 judged identically to SM120** — same `suspicious` empty-group case, and the **same determinism hash `f92674f9804a1e90`** (bf16 masked GEMM is bit-identical across SM120/SM121); case 8 = **`Assertion error (/deepgemm/csrc/apis/gemm.hpp:415): Unsupported architecture or scaling factor types`** (exit=1) ⇒ **fails loudly, silent NaN not reproduced**. The silent behaviour was recorded on **2.8.1**, and neither 101 nor 102 has a 2.8.1 aarch64 build | §1.1 conclusion row and the "why standalone" note tightened to a version-scoped claim; §8 new row; data index row 2 ⛔ → ○; SM121 result file added under `data/reference_l1_semantic/` |
 
 Row-by-row pointers from every conclusion to its raw file, conditions and status are in the repository root, `N1_data_index.md` / `N1_data_index.en.md`.
 

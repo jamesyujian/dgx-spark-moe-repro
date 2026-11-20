@@ -2,6 +2,23 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.0.7 — 2026-11-20 (SM121 rerun: silent NaN downgraded to a version-scoped claim)
+
+**New artifact**
+- `data/reference_l1_semantic/s104_result_sm121_dg023post2.json` — the same `scripts/s104_semantic.py`, run on **101 (GB10 / SM121 / aarch64)** inside `sglang-sm12x:f832b5c39559` (`deep_gemm 0.2.3.post2`, CUDA 13.0.3): 8 `verdict` records, sha256 `126bd77144b0f3d07391d4fde58b8c4582911c9212405d4e5ae5c01d5a15dec3` (1,495 B).
+- `data/reference_l1_semantic/README.txt` gains a "Result 2" section: both provenances, the per-case table, the two independently quotable facts, and the rerun prerequisite (**line numbers move with the version**: 2.8.1 → `:346`, 0.2.3.post2 → `:415`).
+
+**The one substantive revision**
+- §1.1 "two generations, two failure modes: SM120 fails loudly, SM121 silently returns all-NaN" → now **split by library version**: on `0.2.3.post2`, SM121 hits **`Assertion error (/deepgemm/csrc/apis/gemm.hpp:415)`** (exit=1) — **silent NaN was not reproduced**. The silent behaviour was recorded on **2.8.1**, and neither 101 nor 102 has a 2.8.1 aarch64 build today ⇒ that claim is **clamped to version granularity**; "SM121 is always silent" can no longer be said.
+- §1.1 gains a "SM121 rerun (2026-11-20)" row; the "why standalone" note is tightened accordingly, while the **acceptance conclusion is unchanged**: the failure mode swings between "silent" and "crash" across versions, so "it serves and emits tokens" is still not a passing criterion.
+- Side fact: **7 of 8 cases are byte-identical to SM120**, including determinism hash **`f92674f9804a1e90`** ⇒ bf16 masked GEMM is **bit-identical** on SM120/SM121; the divergence is only the FP8 scale-type check.
+- §8 gains row 15 ("SM121 silence is an architecture property" → version-scoped); audit table 9 → **10 items**; `docs/N1_v3_executive_summary.en.md` now says "Ten claims".
+- Data index row 2 **⛔ → ○** (the rerun artifact ships, but with a different library version than the original record — see the "conditions" column). Distribution: ✔15 / ○21 / ⛔1.
+
+**Still open**
+- The original "SM121 silently all-NaN" artifact still does not exist; reproducing it requires building **DeepGEMM 2.8.1** on GB10 (not done as of this release).
+- Board items awaiting a decision (`code_output`, SE-03, P3) are out of scope for this release.
+
 ## v1.0.6 — 2026-11-20 (L1 artifacts shipped, §6 denominator footnote, two-part release)
 
 **Original artifacts recovered (index row 1 ⛔ → ✔)**

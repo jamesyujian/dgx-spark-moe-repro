@@ -14,7 +14,7 @@
 | **Reproduction harness** | `scripts/serve_fp8_tp2.sh`, `serve_nvfp4_tp1.sh`, `probe_20_prompts.py`, `eval_gsm8k.py`, `attrib_tp_vs_dtype.py`, `run_matrix.sh`; **L1 verdict harness** `scripts/s104_semantic.py` (8 cases for non-ue8m0 feeding DeepGEMM directly; runs standalone) |
 | **Pitfall notes / noise discipline** | `docs/NOISE_POLICY.md`, `docs/EVIDENCE_INDEX.en.md`, `docs/SE-03_teacher_forcing_verdict.en.md` |
 | **Raw JSON locations** | 115 `$BASE/d4/results/s104i_*`, `s104j_*`, `s104k_*`; 101 `$BASE/d4/results/s104x3_det_*_sm121_101_r{1..10}`, `$BASE/results/sglang_result_*`; row by row in `N1_data_index.md` |
-| **Reference runs for self-checks** | `data/reference_fp8_tp2/`, `data/reference_replay_1120/`, `data/reference_crossmachine_nvfp4/`, **`data/reference_l1_semantic/`** (the 8 L1 verdicts, last one being the `gemm.hpp:346` crash) (meta + expected md5) |
+| **Reference runs for self-checks** | `data/reference_fp8_tp2/`, `data/reference_replay_1120/`, `data/reference_crossmachine_nvfp4/`, **`data/reference_l1_semantic/`** (the 8 L1 verdicts in two versions: `s104_result_sm120.json` on SM120 / 2.8.1 ending in `gemm.hpp:346`, and `s104_result_sm121_dg023post2.json` on SM121 / 0.2.3.post2 ending in `gemm.hpp:415`) |
 
 **Three-second navigation**: re-check a number → open `N1_data_index.md`, take its row and the raw file on that machine; run it yourself → §2 quick start; check the claim's boundary → `docs/N1_闭合状态表.md`.
 
@@ -48,7 +48,7 @@ data/
   prompts/README.md            what each prompt tests, grading type, max_tokens
   fingerprints/expected.md5    expected fingerprints (content-projection md5 + raw file md5) with method
   reference_fp8_tp2/           reference run of the same stack (r1–r3 + meta), allows offline fingerprint recomputation
-  reference_l1_semantic/       the 8 verdicts of N1 §1.1 L1 (`s104_result_sm120.json` + provenance note)
+  reference_l1_semantic/       the 8 L1 verdicts (`s104_result_sm120.json` + `s104_result_sm121_dg023post2.json` + provenance note)
   reference_replay_1120/       same-stack replay from a freshly unpacked copy (r1–r3 + meta + README.txt)
   reference_crossmachine_nvfp4/ NVFP4 + marlin + TP1 on two GPU models (115 / 116, r1–r3 each + meta_*.txt)
   gsm8k/README.md              where the GSM8K 1319 subset comes from, how it is cut, license notes
