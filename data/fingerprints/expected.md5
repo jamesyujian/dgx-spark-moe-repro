@@ -1,0 +1,117 @@
+﻿# 期望指纹（用于判断"这一跑是否与基准逐字节一致"）
+
+## 0. 先说清 md5 的口径（两种，别混）
+
+| 口径 | 怎么算 | 稳不稳 | 用在哪 |
+|---|---|---|---|
+| **原始文件 md5** | 对整份 `.json` / `.jsonl` 求 md5 | **不稳**：结果文件带时间戳、tag、耗时，同一栈重跑 md5 必然不同 | 只用于"这一份产物有没有被改动"（归档、比对传输完整性） |
+| **内容投影 md5**（**本文档采用**） | 取 `[(id, content, sorted(tool_calls)) for r in results]` 排序后 `json.dumps(..., sort_keys=True)` 再 md5 | **稳**：同栈同参数十轮应完全相同 | 判断确定性的唯一合法口径 |
+
+复算命令：
+
+```python
+import json, hashlib
+
+def canon_md5(path):
+    """内容投影 md5：只保留"答案内容"，剔除一切每跑都会变的字段。"""
+    d = json.load(open(path, encoding="utf-8"))
+    proj = []
+    for r in d.get("results", []):
+        tcs = []
+        for tc in (r.get("tool_calls") or []):
+            f = tc.get("function") or {}
+            tcs.append([tc.get("type"), f.get("name"), f.get("arguments")])   # ← 不含 tc.id
+        tcs.sort(key=lambda x: json.dumps(x, ensure_ascii=False))
+        proj.append([r["id"], r.get("content") or "", tcs])
+    return hashlib.md5(json.dumps(proj, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+```
+
+**必须剔除 `tool_calls[*].id`**（服务端每跑生成新 id，形如 `chatcmpl-tool-9fac2e5d…`）：若不剔除，**带工具调用的跑永远"不稳定"**，三题的 id 一变，md5 就变。2026-11-19 实测：同一栈三轮，含 id 时 `76b02bd2…` / `578572a3…` / `5f15b543…` 三个不同值；剔 id 后三轮全为 **`c8db9a77c6d7b58a40df9d66f75344e7`**。
+
+---
+
+## 1. 基准指纹（2026-11-19 采集）
+
+### 1.1 20 题 · BF16 · TP=2 · 0.29.0（十轮逐字节全同，这是"确定性参照"）
+
+| 项 | 值 |
+|---|---|
+| 内容投影 md5 | **`3bfdab3a4a21e177b8b467c4676e9646`**（r1…r10 全部相同） |
+| 通过 | 36 / 40（两轮带 tools；失败 `num_mul`×2 + `logic_weekday`×2） |
+| 说明 | 原始文件 md5 各轮不同（带时间戳），**不可拿原始 md5 判确定性** |
+
+### 1.2 GSM8K 1319 · BF16 · 0.29.0 同版本同 TP（FP8 的唯一合法参照）
+
+| 文件 | md5 | 计数 |
+|---|---|---|
+| `gsm8k_bf16_run2.jsonl` | **`c455a539e5a230171220418061f053f5`** | 1120 / 1319 = **0.849128** |
+| `gsm8k_bf16_run3.jsonl` | `c455a539e5a230171220418061f053f5`（与 run2 **逐字节相同**） | 1120 / 1319 |
+
+### 1.3 GSM8K 1319 · FP8 · triton · TP=2（被比较方）
+
+| 文件 | md5 | 计数 |
+|---|---|---|
+| `gsm8k_fp8_tp2_triton.jsonl` | **`ab097a76a6e76701eafe0b9891227ff0`** | 1115 / 1319 = **0.845337** |
+
+⇒ 与 1.2 的差 = **−0.38 pp**；逐题 McNemar b=32 / c=37、精确 p=0.63 ⇒ **不可区分**。
+
+### 1.4 输入数据（复现的前提）
+
+| 文件 | md5 |
+|---|---|
+| `gsm8k_test_1319.jsonl`（1319 题切片） | **`f1203b1ad1e2687fbb4c3d3bc1c6ae84`** |
+| `s104b_prompts.json`（20 题集，sha256） | **`2edd60165bac3f9ce48e2e93f70a1a940af26b98b85d32a60638f3d132a963bd`** |
+
+---
+
+## 1.5 FP8 · triton · TP=2 · 20 题参考跑（2026-11-19 10:07，本包自带的参考产物）
+
+产物在 `data/reference_fp8_tp2/`（`r1.json` / `r2.json` / `r3.json` / `meta.txt`），起服 60 s 到 health，KV **1,355,776 token / 8,192 ctx ⇒ 165.50×**。
+
+| 项 | 值 |
+|---|---|
+| 三轮判分 | **18 / 20 × 3**（`tool_calling` 3/3） |
+| 失败题 | **`num_mul` + `logic_weekday`** —— 与 BF16 基准的失败集**完全相同**（参照 `s104b_bf16.json`，TP2，11-15，36/40） |
+| 内容投影 md5 | **`c8db9a77c6d7b58a40df9d66f75344e7`**（三轮全同，已剔除 `tool_calls[*].id`） |
+| `tc_*` 三条 | `tc_single` calls=[get_weather]、`tc_multi` calls=[get_weather, get_time]、`tc_none` 未误调（expect 1000 / got 1000.0）、`parsed_from_content=false` |
+
+### 1.5.1 同一栈、只差一个启动参数的对照（这条比指纹更有用）
+
+| 起服参数 | 判分 | 失败题 |
+|---|---|---|
+| **不带** `--enable-auto-tool-choice --tool-call-parser qwen3_xml` | **15 / 20 × 3**（`tool_calling` **0/3**，`tool_calls` 恒为空） | `num_mul`、`logic_weekday`、`tc_single`、`tc_multi`、`tc_none` |
+| **带上** 上述两个参数 | **18 / 20 × 3** | `num_mul`、`logic_weekday` |
+
+⇒ **差 3 题（15 pp）全部来自解析器，不是精度**。本包 `scripts/run_matrix.sh` 已把这两个参数写成默认，就是为了让"第一次跑"直接落在 18/20，不掉进这个坑。
+
+---
+
+## 2. 反例指纹（**不要**拿来当参照）
+
+| 文件 | md5 | 计数 | 为什么不能当参照 |
+|---|---|---|---|
+| `gsm8k_bf16_truth`（0.27.1、端口 8002） | — | 1105 / 1319 = 0.837756 | **跨版本**：用它相减会得到"+0.76 pp"，符号与同版本结论相反 |
+| `s104b_bf16_tp2_115_v0271.json` | — | 32 / 40 | 与基准 36/40 **失败集不同**（多 `num_unit`、`code_bug`），混引会长得像挑了好看的分母 |
+
+---
+
+## 3. 用法
+
+```bash
+# 离线也能验：直接拿包里的参考跑复算，应当得到 c8db9a77…
+python3 - <<'PY'
+import json, hashlib
+def canon(p):
+    d=json.load(open(p,encoding="utf-8"))
+    proj=[]
+    for r in d.get("results",[]):
+        tcs=sorted([[(tc.get("type")), (tc.get("function") or {}).get("name"), (tc.get("function") or {}).get("arguments")]
+                    for tc in (r.get("tool_calls") or [])], key=lambda x: json.dumps(x,ensure_ascii=False))
+        proj.append([r["id"], r.get("content") or "", tcs])
+    return hashlib.md5(json.dumps(proj,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+for f in ("r1.json","r2.json","r3.json"):
+    print(f, canon("data/reference_fp8_tp2/"+f))
+PY
+# 期望: FP8@TP2 triton 三轮 = c8db9a77c6d7b58a40df9d66f75344e7
+# 若你要验 BF16@TP2 的十轮基准（3bfdab3a…），注意那份是"未开解析器"的产物，tool_calls 全空
+```

@@ -1,0 +1,27 @@
+{
+  "version": "s104b-v1",
+  "date": "2026-11-15",
+  "note": "S1-04-b 固定 prompt 集 20 条（原 10 条 + 补 10 条，含数值/长上下文/JSON/tool calling）。判定全部确定性，不依赖人工读答案。",
+  "prompts": [
+    {"id": "num_mul", "cat": "numeric", "q": "计算 1234567 × 89 的结果，只输出数字，不要解释。", "max_tokens": 40, "judge": {"type": "num", "expect": 109876463}},
+    {"id": "num_unit", "cat": "numeric", "q": "3.5 TB 等于多少 GB（按 1 TB = 1024 GB）？只输出数字。", "max_tokens": 40, "judge": {"type": "num", "expect": 3584}},
+    {"id": "num_float", "cat": "numeric", "q": "0.1 + 0.2 的精确十进制值是多少？只输出数字。", "max_tokens": 40, "judge": {"type": "num", "expect": 0.3, "tol": 1e-9}},
+    {"id": "num_pct", "cat": "numeric", "q": "一件商品原价 480 元，打 8.5 折后再减 30 元，最终价格是多少元？只输出数字。", "max_tokens": 40, "judge": {"type": "num", "expect": 378}},
+    {"id": "logic_syllogism", "cat": "logic", "q": "如果所有 A 都是 B，有些 B 是 C，那么「有些 A 是 C」是否一定成立？只答 是 或 否。", "max_tokens": 20, "judge": {"type": "contains", "any": ["否", "不"]}},
+    {"id": "logic_weekday", "cat": "logic", "q": "如果今天是周三，那么再过 100 天是星期几？只答星期几。", "max_tokens": 20, "judge": {"type": "contains", "any": ["星期五", "周五", "礼拜五", "Friday"]}},
+    {"id": "code_rev", "cat": "code", "q": "用 Python 写一个反转字符串的函数 rev(s)，只输出代码。", "max_tokens": 120, "judge": {"type": "regex", "pattern": "def\\s+rev\\s*\\("}},
+    {"id": "code_bug", "cat": "code", "q": "这段代码想打印 0 到 10 但只打到 9，bug 在哪：for i in range(10): print(i)。一句话说明。", "max_tokens": 120, "judge": {"type": "contains", "any": ["range(11)", "range（11）", "10 → 11", "10改成11", "10 改成 11", "不包含 10", "开区间", "excludes 10", "should be 11"]}},
+    {"id": "code_output", "cat": "code", "q": "这段 Python 代码输出什么：print(len(\"你好世界\")) 只输出结果。", "max_tokens": 20, "judge": {"type": "num", "expect": 4}},
+    {"id": "long_temp", "cat": "long_context", "q": "LONG_TEXT_TEMP\n\n上文中「机柜 C」的温度是多少度？只输出数字。", "max_tokens": 40, "judge": {"type": "num", "expect": 45}},
+    {"id": "long_count", "cat": "long_context", "q": "LONG_TEXT_COUNT\n\n上文中「告警计数」是多少次？只输出数字。", "max_tokens": 40, "judge": {"type": "num", "expect": 3}},
+    {"id": "zh_en", "cat": "bilingual", "q": "把 the quick brown fox jumps over the lazy dog 译成中文，再把中文译回英文，两行输出。", "max_tokens": 160, "judge": {"type": "regex", "pattern": "狐狸[\\s\\S]*(fox|dog|jump)"}},
+    {"id": "en_zh", "cat": "bilingual", "q": "把「深度学习需要大量数据」译成英文，只输出英文。", "max_tokens": 60, "judge": {"type": "regex", "pattern": "(?i)deep learning[^\\n]{0,60}(large|a lot|massive|huge|plenty)"}},
+    {"id": "json_fmt", "cat": "json", "q": "只输出一个 JSON 对象，包含键 a 值为 1、键 b 值为 2，不要任何解释文字。", "max_tokens": 60, "judge": {"type": "json_flat", "expect": {"a": 1, "b": 2}}},
+    {"id": "json_nested", "cat": "json", "q": "只输出一个 JSON 对象：键 user 是对象，含 name=\"张三\"、age=30；键 tags 是数组 [\"a\",\"b\"]。不要任何解释文字。", "max_tokens": 120, "judge": {"type": "json_nested", "expect": {"user.name": "张三", "user.age": 30, "tags.0": "a", "tags.1": "b"}}},
+    {"id": "fact_capital", "cat": "fact", "q": "中国的首都是哪个城市？只答城市名。", "max_tokens": 20, "judge": {"type": "contains", "any": ["北京", "Beijing"]}},
+    {"id": "bat_ball", "cat": "word_problem", "q": "一个球拍和一个球共 1.10 美元，球拍比球贵 1.00 美元。球多少钱？只输出数字（美元）。", "max_tokens": 40, "judge": {"type": "num", "expect": 0.05, "tol": 1e-9}},
+    {"id": "tc_single", "cat": "tool_calling", "q": "北京现在天气怎么样？", "max_tokens": 100, "tools": ["get_weather"], "judge": {"type": "toolcall", "expect": [{"name": "get_weather", "args_any": ["北京", "Beijing", "beijing"]}]}},
+    {"id": "tc_multi", "cat": "tool_calling", "q": "帮我查一下上海现在的天气，顺便看一下现在几点。", "max_tokens": 160, "tools": ["get_weather", "get_time"], "judge": {"type": "toolcall", "expect": [{"name": "get_weather", "args_any": ["上海", "Shanghai", "shanghai"]}, {"name": "get_time", "args_any": []}]}},
+    {"id": "tc_none", "cat": "tool_calling", "q": "谢谢，不用查天气了，直接回答我：1 公里等于多少米？只输出数字。", "max_tokens": 40, "tools": ["get_weather", "get_time"], "judge": {"type": "no_toolcall_and_num", "expect": 1000}}
+  ]
+}

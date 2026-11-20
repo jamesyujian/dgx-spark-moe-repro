@@ -1,0 +1,6 @@
+serve_start=2026-11-20 08:16:12  tag=nvfp4_tp1_marlin_116  extra=--tensor-parallel-size 1 --gpu-memory-utilization 0.90 --max-model-len 8192 --max-num-seqs 32 --moe-backend marlin
+RESULT=HEALTH_OK elapsed~108s
+(EngineCore pid=6411) INFO 11-20 08:16:23 [nvfp4.py:261] Using 'MARLIN' NvFp4 MoE backend out of potential backends: ['FLASHINFER_TRTLLM', 'FLASHINFER_CUTEDSL', 'FLASHINFER_CUTEDSL_BATCHED', 'FLASHINFER_CUTLASS', 'VLLM_CUTLASS', 'MARLIN', 'HUMMING', 'EMULATION'].
+(EngineCore pid=6411) INFO 11-20 08:17:47 [gpu_worker.py:640] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.8911 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.9089. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(EngineCore pid=6411) INFO 11-20 08:17:47 [kv_cache_utils.py:2032] GPU KV cache size: 155,648 tokens, Maximum concurrency for 8,192 tokens per request: 19.00x
+done=2026-11-20 08:18:07

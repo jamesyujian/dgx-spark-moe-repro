@@ -1,0 +1,6 @@
+serve_start=2026-11-20 08:08:15  tag=fp8_tp2_triton  extra=--tensor-parallel-size 2 --gpu-memory-utilization 0.90 --max-model-len 8192 --max-num-seqs 64 --moe-backend triton
+RESULT=HEALTH_OK elapsed~80s
+(Worker_TP1 pid=5770) INFO 11-20 08:09:16 [gpu_worker.py:640] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.8927 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.9073. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(Worker_TP0 pid=5769) INFO 11-20 08:09:16 [gpu_worker.py:640] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.8927 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.9073. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(EngineCore pid=5677) INFO 11-20 08:09:16 [kv_cache_utils.py:2032] GPU KV cache size: 1,355,776 tokens, Maximum concurrency for 8,192 tokens per request: 165.50x
+done=2026-11-20 08:09:41

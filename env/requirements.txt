@@ -1,0 +1,20 @@
+# pip 侧最小依赖（参考用）
+
+# ⚠ 本文件不是"装这个就能跑"。vLLM 的版本决定后端可用面，必须以 env/versions.md 的实测组合为准；
+#    换版本会改变 MoE 后端清单（例：0.29.0 是 9 项、0.31.0 是 10 项，差的正是 flashinfer_cutile）。
+
+vllm==0.29.0          # 115/116 的 venv 口径；0.31.0 只在容器 nvcr.io/nvidia/vllm:26.10-py3 内
+torch==2.13.0         # +cu130，随 vllm 安装方式而定
+transformers==5.17.0
+flashinfer-python==0.6.18
+numpy
+tqdm
+
+# 系统侧（不在 pip 里，必须对齐）
+#   NVIDIA 驱动 615.71.09（Open Kernel Module）
+#   NCCL 2.30.7
+#   CUDA capability: sm_120（PRO 5000 / PRO 4500）、sm_121（GB10）
+#
+# 验证命令：
+#   python3 -c "import torch, vllm; print(torch.__version__, vllm.__version__, torch.cuda.get_device_capability())"
+#   cat /proc/driver/nvidia/version | head -2

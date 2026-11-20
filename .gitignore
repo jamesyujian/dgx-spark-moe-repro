@@ -1,0 +1,17 @@
+# 产物与本地环境，不入库
+results/run_*/
+!results/README.md
+
+# 模型权重绝不应出现在仓库里
+*.safetensors
+*.bin
+*.gguf
+
+# 日志
+*.log
+
+# 编辑器/系统
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc

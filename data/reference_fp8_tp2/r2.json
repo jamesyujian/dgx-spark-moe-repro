@@ -1,0 +1,460 @@
+{
+ "summary": {
+  "tag": "c3_fp8_tp2_triton_xml_r2",
+  "model": "qwen36-c3_fp8_tp2_triton_xml",
+  "base_url": "http://127.0.0.1:8231",
+  "prompt_version": "s104b-v1",
+  "repeat": 1,
+  "total": 20,
+  "passed": 18,
+  "acc": 0.9,
+  "by_cat": {
+   "numeric": {
+    "pass": 3,
+    "n": 4
+   },
+   "logic": {
+    "pass": 1,
+    "n": 2
+   },
+   "code": {
+    "pass": 3,
+    "n": 3
+   },
+   "long_context": {
+    "pass": 2,
+    "n": 2
+   },
+   "bilingual": {
+    "pass": 2,
+    "n": 2
+   },
+   "json": {
+    "pass": 2,
+    "n": 2
+   },
+   "fact": {
+    "pass": 1,
+    "n": 1
+   },
+   "word_problem": {
+    "pass": 1,
+    "n": 1
+   },
+   "tool_calling": {
+    "pass": 3,
+    "n": 3
+   }
+  },
+  "gen_tokens": 264,
+  "finished_at": "2026-11-19 10:08:11"
+ },
+ "results": [
+  {
+   "id": "num_mul",
+   "cat": "numeric",
+   "rep": 1,
+   "pass": false,
+   "detail": "expect 109876463 got [109876563.0]",
+   "error": null,
+   "content": "109876563",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 35,
+    "total_tokens": 45,
+    "completion_tokens": 10,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.072
+  },
+  {
+   "id": "num_unit",
+   "cat": "numeric",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 3584 got [3584.0]",
+   "error": null,
+   "content": "3584",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 38,
+    "total_tokens": 43,
+    "completion_tokens": 5,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.041
+  },
+  {
+   "id": "num_float",
+   "cat": "numeric",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 0.3 got [0.30000000000000004]",
+   "error": null,
+   "content": "0.30000000000000004",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 32,
+    "total_tokens": 52,
+    "completion_tokens": 20,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.103
+  },
+  {
+   "id": "num_pct",
+   "cat": "numeric",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 378 got [378.0]",
+   "error": null,
+   "content": "378",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 46,
+    "total_tokens": 50,
+    "completion_tokens": 4,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.036
+  },
+  {
+   "id": "logic_syllogism",
+   "cat": "logic",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect any ['否', '不']",
+   "error": null,
+   "content": "否",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 46,
+    "total_tokens": 48,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.029
+  },
+  {
+   "id": "logic_weekday",
+   "cat": "logic",
+   "rep": 1,
+   "pass": false,
+   "detail": "expect any ['星期五', '周五', '礼拜五', 'Friday']",
+   "error": null,
+   "content": "四",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 33,
+    "total_tokens": 35,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.028
+  },
+  {
+   "id": "code_rev",
+   "cat": "code",
+   "rep": 1,
+   "pass": true,
+   "detail": "pattern def\\s+rev\\s*\\(",
+   "error": null,
+   "content": "```python\ndef rev(s):\n    return s[::-1]\n```",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 28,
+    "total_tokens": 45,
+    "completion_tokens": 17,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.089
+  },
+  {
+   "id": "code_bug",
+   "cat": "code",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect any ['range(11)', 'range（11）', '10 → 11', '10改成11', '10 改成 11', '不包含 10', '开区间', 'excludes 10', 'should be 11']",
+   "error": null,
+   "content": "`range(10)` 默认从 0 开始且不包含结束值 10，因此只生成 0 到 9，需改为 `range(11)` 才能打印到 10。",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 48,
+    "total_tokens": 96,
+    "completion_tokens": 48,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.217
+  },
+  {
+   "id": "code_output",
+   "cat": "code",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 4 got [4.0]",
+   "error": null,
+   "content": "4",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 30,
+    "total_tokens": 32,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.033
+  },
+  {
+   "id": "long_temp",
+   "cat": "long_context",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 45 got [45.0]",
+   "error": null,
+   "content": "45",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 988,
+    "total_tokens": 991,
+    "completion_tokens": 3,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.139
+  },
+  {
+   "id": "long_count",
+   "cat": "long_context",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 3 got [3.0]",
+   "error": null,
+   "content": "3",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 984,
+    "total_tokens": 986,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.135
+  },
+  {
+   "id": "zh_en",
+   "cat": "bilingual",
+   "rep": 1,
+   "pass": true,
+   "detail": "pattern 狐狸[\\s\\S]*(fox|dog|jump)",
+   "error": null,
+   "content": "那只敏捷的棕色狐狸跳过了那只懒狗。\nThe quick brown fox jumps over the lazy dog.",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 37,
+    "total_tokens": 60,
+    "completion_tokens": 23,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.118
+  },
+  {
+   "id": "en_zh",
+   "cat": "bilingual",
+   "rep": 1,
+   "pass": true,
+   "detail": "pattern (?i)deep learning[^\\n]{0,60}(large|a lot",
+   "error": null,
+   "content": "Deep learning requires large amounts of data.",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 27,
+    "total_tokens": 36,
+    "completion_tokens": 9,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.06
+  },
+  {
+   "id": "json_fmt",
+   "cat": "json",
+   "rep": 1,
+   "pass": true,
+   "detail": "json={'a': 1, 'b': 2}",
+   "error": null,
+   "content": "{\"a\": 1, \"b\": 2}",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 39,
+    "total_tokens": 52,
+    "completion_tokens": 13,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.076
+  },
+  {
+   "id": "json_nested",
+   "cat": "json",
+   "rep": 1,
+   "pass": true,
+   "detail": "bad={}",
+   "error": null,
+   "content": "{\"user\": {\"name\": \"张三\", \"age\": 30}, \"tags\": [\"a\", \"b\"]}",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 52,
+    "total_tokens": 78,
+    "completion_tokens": 26,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.129
+  },
+  {
+   "id": "fact_capital",
+   "cat": "fact",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect any ['北京', 'Beijing']",
+   "error": null,
+   "content": "北京",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 23,
+    "total_tokens": 25,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.032
+  },
+  {
+   "id": "bat_ball",
+   "cat": "word_problem",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 0.05 got [0.05]",
+   "error": null,
+   "content": "0.05",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 48,
+    "total_tokens": 53,
+    "completion_tokens": 5,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.044
+  },
+  {
+   "id": "tc_single",
+   "cat": "tool_calling",
+   "rep": 1,
+   "pass": true,
+   "detail": "calls=['get_weather'] ",
+   "error": null,
+   "content": "",
+   "tool_calls": [
+    {
+     "id": "chatcmpl-tool-a8be1070c026a325",
+     "type": "function",
+     "function": {
+      "name": "get_weather",
+      "arguments": "{\"city\": \"北京\"}"
+     }
+    }
+   ],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 285,
+    "total_tokens": 311,
+    "completion_tokens": 26,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.16
+  },
+  {
+   "id": "tc_multi",
+   "cat": "tool_calling",
+   "rep": 1,
+   "pass": true,
+   "detail": "calls=['get_weather', 'get_time'] ",
+   "error": null,
+   "content": "",
+   "tool_calls": [
+    {
+     "id": "chatcmpl-tool-945463ef7df7ff07",
+     "type": "function",
+     "function": {
+      "name": "get_weather",
+      "arguments": "{\"city\": \"上海\"}"
+     }
+    },
+    {
+     "id": "chatcmpl-tool-82ecd82fa8356ade",
+     "type": "function",
+     "function": {
+      "name": "get_time",
+      "arguments": "{}"
+     }
+    }
+   ],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 339,
+    "total_tokens": 379,
+    "completion_tokens": 40,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.222
+  },
+  {
+   "id": "tc_none",
+   "cat": "tool_calling",
+   "rep": 1,
+   "pass": true,
+   "detail": "expect 1000 got [1000.0]",
+   "error": null,
+   "content": "1000",
+   "tool_calls": [],
+   "parsed_from_content": false,
+   "usage": {
+    "prompt_tokens": 349,
+    "total_tokens": 354,
+    "completion_tokens": 5,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+   },
+   "latency_s": 0.08
+  }
+ ]
+}
