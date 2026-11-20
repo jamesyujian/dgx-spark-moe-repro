@@ -9,6 +9,7 @@ English：[`EVIDENCE_INDEX.en.md`](EVIDENCE_INDEX.en.md)（本文件为准）
 
 | 公告条目 | 结论 | 怎么复现 | 原始产物 |
 |---|---|---|---|
+| §1.1 L1 禁用 | 非 ue8m0 直连 DeepGEMM → 明确崩（`gemm.hpp:346`），不是静默 NaN | **包内直接跑**：`python3 scripts/s104_semantic.py`（需 DeepGEMM 2.8.1 + 非 ue8m0 的 FP8 权重） | `data/reference_l1_semantic/s104_result_sm120.json`（8 条 verdict，末条 `error`；来源与 sha256 见同目录 `README.txt`） |
 | §1 FP8 L2 可用 | block-scaled 128×128 W8A8 能跑 | `scripts/run_matrix.sh $MODEL 8230 fp8_tp2 --tensor-parallel-size 2 --moe-backend triton` | `$BASE/s104b/results/s104b_fp8_tp2_{triton,tc}.json` |
 | §1 L3 三后端拒 | `hpc`/`cutlass`/`flashinfer_cutlass` 各自拒绝 | 同上，换 `--moe-backend` | `$BASE/logs/fp8_matrix/{single_hpc,single_cutlass,p3_single_flashinfer_cutlass}.log` |
 | §1 GSM8K 差 −0.38 pp | 同版本同 TP 下不可区分 | `scripts/eval_gsm8k.py` 两次（BF16 / FP8 各一跑） | `$BASE/results/gsm8k_bf16_run2.jsonl`、`$BASE/s104b/results/gsm8k_fp8_tp2_triton.jsonl` |
@@ -38,6 +39,6 @@ English：[`EVIDENCE_INDEX.en.md`](EVIDENCE_INDEX.en.md)（本文件为准）
 
 | 数 | 为什么不在本包 |
 |---|---|
-| SGLang 的 −6.31 % 吞吐 | 需要 SGLang 栈 + 配对执行器（`pair_ab` 一类），未随包发布 |
+| SGLang 的 −6.31 % 吞吐（分母 = `marlin`；反向 +6.74 %） | 原始产物是 101 `~/sm12x/results/sglang_result_*.json` + `gsm8k_*.jsonl` 共 12 份（N1 §6 列全名），但**配对执行器未随包发布**，所以只能复核、不能一键重跑 |
 | 5080 节点 3 分钟漂 18 % | 另一台机型，属噪声证据，不是本包结论 |
 | `flashinfer_cutile` 容量数字（16/48 MiB） | 需要 32G 卡上单跑该后端，已在公告正文给数，脚本同 §2 |

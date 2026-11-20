@@ -6,8 +6,8 @@
 
 | # | Conclusion (N1 item) | Raw file | Conditions | Status |
 |---|---|---|---|---|
-| 1 | §1.1 L1 · SM120 hard failure (`gemm.hpp:346` / `CUDA 719`) | `$BASE/s104_semantic.py` (8 cases; body not found); log excerpts in `安全公告_SM12x非ue8m0_FP8静默NaN_2026-11-13.md` | 116 / PRO 4500 32G / DeepGEMM 2.8.1 direct / `disable_ue8m0_cast=True` | ⛔ rechecked 2026-11-20: script not found on 101 or 116 either; only the document excerpt survives |
-| 2 | §1.1 L1 · SM121 silently all-NaN (`exit=0`, no warning) | 101/102 `$BASE/logs/` (same script, SM121 side); excerpts in the same document | GB10 / SM121 / same script / subprocess isolation | ⛔ 101/102 are back up; no SM121-side log for this script was persisted; excerpt only |
+| 1 | §1.1 L1 · SM120 hard failure (`gemm.hpp:346` / `CUDA 719`) | **Original now shipped**: `scripts/s104_semantic.py` (7 cases + 1 subprocess-isolated case), `data/reference_l1_semantic/s104_result_sm120.json` (8 `verdict` records, last one `error` = `gemm.hpp:346` crash) | 116 `~/dgtest/` / PRO 4500 32G / DeepGEMM 2.8.1 direct / `disable_ue8m0_cast=True` | ✔ recovered 2026-11-20 and checked case by case: 7 `ok`/`suspicious`, 1 `error` |
+| 2 | §1.1 L1 · SM121 silently all-NaN (`exit=0`, no warning) | SM121-side output of the same script (not persisted in 101/102 `$BASE/logs/`); excerpts in `安全公告_SM12x非ue8m0_FP8静默NaN_2026-11-13.md` | GB10 / SM121 / same script / subprocess isolation | ⛔ script recovered, SM121-side output still unlocated: `find *s104*` across 101/102 returns no result file |
 | 3 | §1.2 L2 · TP1 34/40 | `$BASE/s104b/results/s104b_fp8_single_triton.json` | 115 / 0.29.0 / PRO 5000 48G / TP=1 / `--moe-backend triton` | ○ on 115 |
 | 4 | §1.2 L2 · TP2 36/40, failure set identical to BF16 | `s104b_fp8_tp2_triton.json`; reference `s104b_bf16.json` (TP2, 11-15) | 115 / 0.29.0 / TP=2 / triton | ○ on 115 |
 | 5 | §1.2 L2 · GSM8K 0.8453 vs BF16 0.8491, −0.38 pp, p=0.63 | `s104b/results/gsm8k_fp8_tp2_triton.jsonl`; BF16 side `$BASE/results/gsm8k_bf16_run2.jsonl` (same machine, 115) | same version and TP / 1319 items / per-item pairing | ○ on 115 (both sides) |

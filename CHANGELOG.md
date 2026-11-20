@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v1.0.6 — 2026-11-20（L1 原件随包 + §6 分母脚注 + 发布包分两处）
+
+**原件找回（索引第 1 行 ⛔ → ✔）**
+- `scripts/s104_semantic.py` —— N1 §1.1 L1 的判定脚本本体（10,443 B，7 用例 + 1 隔离子进程用例），2026-11-20 自 116 `~/dgtest/` 取回，未做任何改写，无绝对路径、无密钥。sha256 `36d3de6a81673fc1b2502f8ca0f333d572ae2dc3fc4d5c7c7964e2ee2484930e`。
+- `data/reference_l1_semantic/s104_result_sm120.json` —— 同机同轮的 8 条 `verdict`（7 `ok`/`suspicious` + 1 `error` = `gemm.hpp:346` 崩溃），sha256 `606279055f163886cfb66bdeb0a39b498aeb96c1173543c4532ada608fd5377d`；目录内 `README.txt` 给出来源、8 条判定表、复跑前提（DeepGEMM 2.8.1）。
+- **SM121 侧（索引第 2 行）维持 ⛔**：同一脚本在 GB10 上的输出（`exit=0`、全 NaN、无 warning）没有落盘；101/102 全盘 `find *s104*` 只见到 `s104_deep_gemm.json`（那是 `deepseek-v4-flash` 的 logprob 采样，不是本脚本）。公告里的结论出自 2026-11-13 现场记录，原件待补跑。
+
+**§6 / §0.5 补分母口径（数值不变，口径写明）**
+- 6.31 % 的分母是 **`marlin`**（三对逐对「(marlin−cutlass)/marlin」= 5.78 % / 7.02 % / 6.13 %）；以 `cutlass` 为分母同一批数据是 **+6.74 %**。两个数不可相减、不可混用。
+- 侧发现：**不存在 `r1`**，三对实为 `sm121` 基线对 + `r2` + `r3`；§6 已列 6 个实文件名（含逐题 jsonl）。
+- 精度侧（b=25 / c=20 / p=0.5515、83.09 % vs 82.71 %）按 6 份 `gsm8k_*.jsonl` 逐题重算已复核，与正文一致；单对单跑的 44/31、26/37、38/31 属另一口径，§8 新增说明行，防止被当成"正文算错"。
+
+**发布形态：一处 → 两处**
+- 同一 release 两个 asset：`dgx-spark-moe-repro-docs-v1.0.6.zip`（docs / scripts / env / README / CHANGELOG / 索引 / LICENSE）与 `dgx-spark-moe-repro-data-v1.0.6.zip`（`data/` 全部原始 JSON 与指纹）。
+- 两份 zip 共用同一顶层目录 `dgx-spark-moe-repro/`，解压到同一父目录即合并；各自根上有 `MANIFEST.md` 写明另一半的文件名与 sha256。
+
+**改动位置**：`docs/N1_公告_v3_公开版.md`（§6 标题与"三对实际文件名"块、吞吐分母口径、§0.5 括注、§1.1 取证件、§8 新增二行、修订 7 表扩到 9 行）、`docs/N1_v3_executive_summary.en.md`（审计表 7 → 9 行）、`N1_data_index.md` / `.en.md` 第 1/2 行、`README.md` / `README.en.md`（有什么表 + 两处分发说明）、新增 `scripts/s104_semantic.py`、`data/reference_l1_semantic/`。
+
 ## v1.0.5 — 2026-11-20（改名 `dgx-spark-moe-repro` + README 三秒版）
 
 - **仓库/包名**：`sm12x-repro` → **`dgx-spark-moe-repro`**。理由：保留 `repro` 的可复现信号，同时用 `dgx-spark` / `gb10` 承接搜索命中；名字窄不要紧，`topics` 补足。

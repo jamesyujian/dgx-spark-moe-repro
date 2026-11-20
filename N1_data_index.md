@@ -4,8 +4,8 @@
 
 | # | 结论（N1 条目） | 原始文件 | 条件 | 状态 |
 |---|---|---|---|---|
-| 1 | §1.1 L1 · SM120 明确失败（`gemm.hpp:346` / `CUDA 719`） | `$BASE/s104_semantic.py`（8 用例，本体未见）；日志摘录见 `安全公告_SM12x非ue8m0_FP8静默NaN_2026-11-13.md` | 116 / PRO 4500 32G / DeepGEMM 2.8.1 直连 / `disable_ue8m0_cast=True` | ⛔ 2026-11-20 复查：脚本在 101、116 均查无；仅存文档摘录 |
-| 2 | §1.1 L1 · SM121 静默全 NaN（`exit=0`，无 warning） | 101/102 `$BASE/logs/`（同脚本 SM121 侧输出）；摘录同上文档 | GB10 / SM121 / 同一脚本 / 子进程隔离 | ⛔ 101/102 已开机复查，未见该脚本的 SM121 侧日志落盘；仅存摘录 |
+| 1 | §1.1 L1 · SM120 明确失败（`gemm.hpp:346` / `CUDA 719`） | **原件已随包**：`scripts/s104_semantic.py`（7 个用例 + 1 个隔离子进程用例）、`data/reference_l1_semantic/s104_result_sm120.json`（8 条 `verdict`，末条 `error` = `gemm.hpp:346` 崩溃） | 116 `~/dgtest/` / PRO 4500 32G / DeepGEMM 2.8.1 直连 / `disable_ue8m0_cast=True` | ✔ 2026-11-20 取回并逐条核对：7 `ok`/`suspicious`、1 `error` |
+| 2 | §1.1 L1 · SM121 静默全 NaN（`exit=0`，无 warning） | 同脚本的 SM121 侧输出（101/102 `$BASE/logs/` 未见落盘）；摘录见 `安全公告_SM12x非ue8m0_FP8静默NaN_2026-11-13.md` | GB10 / SM121 / 同一脚本 / 子进程隔离 | ⛔ 脚本已找回、SM121 侧输出仍未定位：101/102 全盘 `find *s104*` 无对应结果文件 |
 | 3 | §1.2 L2 · TP1 34/40 | `$BASE/s104b/results/s104b_fp8_single_triton.json` | 115 / 0.29.0 / PRO 5000 48G / TP=1 / `--moe-backend triton` | ○ 在 115 |
 | 4 | §1.2 L2 · TP2 36/40、失败集与 BF16 相同 | `s104b_fp8_tp2_triton.json`；参照 `s104b_bf16.json`（TP2，11-15） | 115 / 0.29.0 / TP=2 / triton | ○ 在 115 |
 | 5 | §1.2 L2 · GSM8K 0.8453 vs BF16 0.8491，−0.38 pp，p=0.63 | `s104b/results/gsm8k_fp8_tp2_triton.jsonl`；BF16 侧 `$BASE/results/gsm8k_bf16_run2.jsonl`（同在 115） | 同版本同 TP / 1319 题 / 逐题配对 | ○ 在 115（两侧同机） |

@@ -66,7 +66,7 @@ Ten identical repeats inside one round produced 4 distinct answers (`3584`×1, `
 
 ## Pre-publication numeric audit (v3 revision 7, 2026-11-20)
 
-Seven claims were recomputed from the raw JSON. No measured data changed; wording, pairing and counting did.
+Nine claims were recomputed from the raw JSON. No measured data changed; wording, pairing and counting did.
 
 | # | What was audited | Recomputed result | Where it was fixed |
 |---|---|---|---|
@@ -77,6 +77,8 @@ Seven claims were recomputed from the raw JSON. No measured data changed; wordin
 | 5 | Absolute level vs relative indistinguishability | A public SM121 NVFP4 report (0-shot / chat template / thinking disabled / flexible extraction) states ≈ 86.7 % ± 0.9 %; **its raw artifacts were not re-checked here** | §5.5 (explicit "relative only" limit; no claim that 83.4–83.7 % is a ceiling) |
 | 6 | GB vs GiB | `71,926,861,539 B ÷ 2^30 = 66.98 GiB`; `48,935 MiB ÷ 1024 = 47.79 GiB`; 65.4 GiB only appears if the 1.1 factor is misapplied | §10.2 footnote |
 | 7 | "TP is not the source" | What the experiment rules out is "TP as an *independent* source"; the TP × NVFP4-kernel interaction was never separated | §5.3 / §10.2 tightened; §8 wording row |
+| 8 | Can the §6 / §0.5 SGLang numbers be recomputed from the artifacts? | From six `sglang_result_*.json` and six `gsm8k_*.jsonl`: majority vote **b=25 / c=20 / p=0.5515** (matches the text); per-pair throughput drop `(marlin−cutlass)/marlin` = 5.78 % / 7.02 % / 6.13 %, mean **6.31 %** (matches). **Denominator matters: with `cutlass` as denominator the same data gives +6.74 %.** Side finding: **there is no `r1`** — the three pairs are the `sm121` baseline plus `r2` and `r3` | §6 (explicit file names + denominator block); §0.5 denominator note; §8 rows invalidating single-pair McNemar and the "r1" wording |
+| 9 | Are the §1.1 L1 eight-case artifacts still around? | **Recovered**: `scripts/s104_semantic.py` (the original 10,443 B script, 7 cases + one subprocess-isolated case) and `data/reference_l1_semantic/s104_result_sm120.json` (8 verdicts, last one `error` = `gemm.hpp:346`) | §1.1 pointers to in-kit paths; data index row 1 ⛔ → ✔; the SM121-side output is still unpersisted (row 2 stays ⛔) |
 
 Row-by-row pointers from every conclusion to its raw file, conditions and status are in the repository root, `N1_data_index.md` / `N1_data_index.en.md`.
 

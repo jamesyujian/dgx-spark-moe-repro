@@ -2,6 +2,24 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.0.6 — 2026-11-20 (L1 artifacts shipped, §6 denominator footnote, two-part release)
+
+**Original artifacts recovered (index row 1 ⛔ → ✔)**
+- `scripts/s104_semantic.py` — the actual harness behind N1 §1.1 L1 (10,443 B, 7 cases + 1 subprocess-isolated case), pulled back from 116 `~/dgtest/` on 2026-11-20, unmodified, no absolute paths and no secrets. sha256 `36d3de6a81673fc1b2502f8ca0f333d572ae2dc3fc4d5c7c7964e2ee2484930e`.
+- `data/reference_l1_semantic/s104_result_sm120.json` — the 8 `verdict` records from the same box and run (7 `ok`/`suspicious` plus 1 `error` = the `gemm.hpp:346` crash), sha256 `606279055f163886cfb66bdeb0a39b498aeb96c1173543c4532ada608fd5377d`; `README.txt` in that folder gives provenance, the 8-row verdict table and the prerequisite for re-running (DeepGEMM 2.8.1).
+- **The SM121 side (index row 2) stays ⛔**: the same script's output on GB10 (`exit=0`, all-NaN, no warning) was never persisted. A full `find *s104*` on 101/102 turns up only `s104_deep_gemm.json` (that is a `deepseek-v4-flash` logprob sampling run, not this harness). The advisory's claim comes from the 2026-11-13 field record; the artifact still has to be re-run.
+
+**§6 / §0.5 denominator made explicit (numbers unchanged)**
+- The 6.31 % is relative to **`marlin`** (per pair `(marlin−cutlass)/marlin` = 5.78 % / 7.02 % / 6.13 %); with `cutlass` as the denominator the same data reads **+6.74 %**. The two must not be subtracted or mixed.
+- Side finding: **there is no `r1`**; the three pairs are the `sm121` baseline plus `r2` and `r3`. §6 now lists all six artifact filenames (including the per-item jsonl).
+- The accuracy side (b=25 / c=20 / p=0.5515, 83.09 % vs 82.71 %) was recomputed item by item from the six `gsm8k_*.jsonl` files and matches the text; the single-pair 44/31, 26/37, 38/31 numbers belong to a different convention, and §8 now says so to stop them being read as "the text was wrong".
+
+**Release shape: one place → two places**
+- One release, two assets: `dgx-spark-moe-repro-docs-v1.0.6.zip` (docs / scripts / env / README / CHANGELOG / index / LICENSE) and `dgx-spark-moe-repro-data-v1.0.6.zip` (`data/` — all raw JSON and fingerprints).
+- Both zips share the same root folder `dgx-spark-moe-repro/`, so extracting into the same parent merges them; each root carries a `MANIFEST.md` naming the other half and its sha256.
+
+**Where it changed**: `docs/N1_公告_v3_公开版.md` (§6 heading and the "actual pair files" block, throughput denominator, §0.5 parenthetical, §1.1 evidence cell, two new §8 rows, revision-7 table now 9 rows), `docs/N1_v3_executive_summary.en.md` (audit table 7 → 9 rows), rows 1–2 of `N1_data_index.md` / `.en.md`, `README.md` / `README.en.md` (inventory table + two-part distribution note), new `scripts/s104_semantic.py` and `data/reference_l1_semantic/`.
+
 ## v1.0.5 — 2026-11-20 (renamed to `dgx-spark-moe-repro` + three-second README)
 
 - **Repository / kit name**: `sm12x-repro` → **`dgx-spark-moe-repro`**. Keeps the `repro` signal while `dgx-spark` / `gb10` carry the search intent; a narrow name is fine because topics cover the rest.
