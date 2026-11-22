@@ -2,6 +2,13 @@
 
 English：[`SE-03_teacher_forcing_verdict.en.md`](SE-03_teacher_forcing_verdict.en.md)（本文件为准）
 
+> **2026-11-20 修订（v1.0.8）——本文的机制结论已被 P4 改判，先读这段再读正文**
+> 11-19 的判定「唯一相关变量是 spec-decode」在**该题文字结果**这一层成立；但 P4（11-20，101+102 TP=2，18:00 复核）把层拆开后改判：
+> - **同配置同会话 rep 间 Δ=0.0000**（100 对、确定）；**`b12x` 与 `deep_gemm` 的 prefill 分布 20/20 题差 >0.1 nats（中位 0.363、0.128–1.396）**，答案邻位 gen 20/20（中位 0.525）⇒ 主因在 **MoE GEMM 后端**，不是 spec；
+> - spec 只是在文字层叠加（≈0.05 nats，并换 top-20 成员）；
+> - 另发现 **`deep_gemm` 同配置跨起服在两道乘法题上漂 ≈0.7 nats、`b12x` 不漂** ⇒ 机制**未定**，只能写现象。
+> ⇒ 机制定为「**kernel 主因 + spec 叠加**」；**结论 3 与影响 1 已按此改写**（见 126、132 行），其余实验与数字保留。**边界**：样本 20 题 ×5 rep（四族 6/5/3/6），logit 层四族全中；**首 token 20/20 相同，但 16-token 文本 13/20 相同、7/20 在 16 token 内就分叉（A1、A2、A4、B4、C2、C3、D1，含数值不同的答案）** ⇒「跨族普遍、且会落到输出」可写，「某族更准 / 全量都会变」不可写；机制直接取证未做。
+
 - 日期：2026-11-19
 - 主机：**101（GB10 / SM121）head + 102 worker**，TP=2 / `--nnodes 2`，served-model `deepseek-v4-flash`，port 8888
 - 栈：`anemll/dspark-vllm-gx10:0.1.1`，DeepSeek-V4-Flash-DSpark，`quantization=deepseek_v4_fp8`（MoE 专家 mxfp4），`--speculative-config {"method":"dspark","num_speculative_tokens":5,"draft_sample_method":"probabilistic"}`、`--enable-prefix-caching`、`kv-cache-dtype nvfp4_ds_mla`
@@ -123,17 +130,17 @@ python3 /tmp/a6_s14_ab.py    # 同 id 增量生成 vs teacher forcing
 
 四次 chat 各跑 2 次均 `CHAT_SAME`（非请求级随机）；四次 `iso_probe` 的 teacher-forced 值**逐位相同**。
 
-**结论 3（机制定位）**：唯一相关变量是 **spec-decode（`method=dspark`、`num_speculative_tokens=5`、`draft_sample_method=probabilistic`）**。
-- 关掉 spec：chat 生成 = `109876543`，与 teacher forcing 完全一致 ⇒ **teacher forcing 反映模型自身分布，方法可信**；
-- 开着 spec：chat 生成 = `109876463`，与 teacher forcing 相反 ⇒ **spec 校验路径把模型偏好替换成另一个值**；
+**结论 3（机制定位，2026-11-20 改判）**：11-19 的「唯一相关变量 = spec-decode」只在**该题文字结果**这一层成立。P4 把层拆开后：**主因是 MoE GEMM 后端**——同配置同会话 rep 间 0.0000（100 对，确定）；**`b12x` 与 `deep_gemm` 的 prefill 分布 20/20 题差 >0.1 nats（中位 0.363、0.128–1.396）**，答案邻位 gen 20/20（中位 0.525）；**spec 只叠加**：关/开 spec 在 11/20 题 prefill 完全相同、余 9 题 ≤0.49，且 spec 臂自身 rep 间漂 0.7063（唯一非确定源）⇒ 机制定为「**kernel 主因 + spec 叠加**」，旧口径作废。
+- 关掉 spec：chat 生成 = `109876543`，与 teacher forcing 一致 ⇒ **teacher forcing 反映模型自身分布，方法可信**（这一条不变）；
+- 开着 spec：chat 生成 = `109876463`，与 teacher forcing 相反 ⇒ **spec 校验路径把模型偏好替换成另一个值**（这一条也不变；但**它只解释文字层，不解释两侧 logit 分布本就不同**）；
 - `prefix-caching`、`chunked-prefill` 均与本现象无关（删掉后仍 463）。
 
 **影响（必须写进发布口径）**：
-1. SE-03 里“deep_gemm 答对 109876463”**不是 kernel 更准**，而是 **spec-decode 的副产物**；关掉 spec 后 deep_gemm 同样输出错值 109876543。
+1. SE-03 里"deep_gemm 答对 109876463"**既不能写成 kernel 更准，也不能只归因于 spec**：spec 是叠加项，主因在 GEMM 后端层的分布差（spec 关掉后两侧 logit 仍差 0.36–0.61 nats，只是该题文字恰好一致）。⇒ 对外只写「**该题上 kernel 层分布差可复现**」，不写"谁更准"。
 2. 该栈在 temp=0 下**不保真 target greedy** —— 凡用此栈做的正确率/精度评测都带此项偏差。
 3. 首 token 分歧（b12x 109 / deep_gemm 123，5.38 / 2.88 nats）与 spec 无关：`spec_off` 下 chat 仍以 `1234567 × 89 =` 开头 ⇒ **结论 1 不受影响**。
 
-**仍未取证**：只有 1 题；spec 不保真的具体位置（draft 采样 vs 拒绝采样阈值 vs 校验批形状）未定位；4 档各只 2 次生成。
+**仍未取证（2026-11-20 23:00 更新）**：11-19 只有 1 题；**P4-c 已扩到 20 题 ×5 rep、四族全覆盖（A 6/6、B 5/5、C 3/3、D 6/6 logit 全中）**；**首 token 20/20 相同，16-token 文本仅 13/20 相同、7/20 在 16 token 内就分叉（含数值不同的答案）** ⇒ 「差会落到输出」可以写，「全量题集都会变 / 某族更准」不能写；**机制仍无直接取证**（未做 kernel 选择/调优落点的受控切换，`deep_gemm` 跨起服漂 ≈0.7 只是现象）；spec 不保真的具体位置（draft 采样 vs 拒绝阈值 vs 校验批形状）未定位。
 
 隔离实验证据：
 ``

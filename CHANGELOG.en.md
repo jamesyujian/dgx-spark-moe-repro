@@ -2,6 +2,42 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.0.9 — 2026-11-22 (N2: the GB10 dual-node MoE recipe enters the kit; D8 closed out)
+
+**New artifacts**
+- `docs/N2_GB10双机MoE配方_v0.1.md` (14 sections + §5.1 re-measurement + §14 appendix): both PP=2 routes, cross-node TP=2, the long-context sweep, the dual stack, the NVFP4 8-shape table, coverage boundaries, reproduction checklist, eight pitfalls. §14 carries the verbatim `pp2_ngc_entry.sh` / `head_tp2s.sh` / `worker_tp2s.sh`.
+- `docs/N2_dual_node_recipe_v0.1.en.md` (full English edition, numbers aligned digit for digit, script blocks kept verbatim; the Chinese file wins).
+- `docs/EVIDENCE_INDEX.md` / `.en.md`: new §5 "N2 evidence map" (9 rows); README gains the doc index entry and the corrected "D8 is now covered" boundary.
+
+**Numbers pinned by this release**
+- **PP=2**: NGC 26.08 + Ray + `--enforce-eager` works, 270 s to serve; single stream **14.71 / 14.72 t/s** (logged; the 4.4 t/s cold first request is discarded); 4-way concurrency is published **only as a range, 25–43 t/s** (25.5 / 43.2 across two runs); KV **243,733 tokens / 29.75x**.
+- **Cross-node TP=2 works** on anemll 0.1.1 + `mp` (HEALTH_OK, 266 s); the long-context sweep ran on it (weights `/models/dsv4-abliterated`). TP=2 on NGC was not tested. The old "vLLM does not support cross-node TP" claim holds only for PyPI 0.24 + `mp`.
+- **anemll PP=2 is dead**: cutedsl `state_cache.strides[0] … divisible by 16`; **no log was captured and it cannot be re-run** (the `dsv4-abliterated` weights no longer exist on either node, and the image ships no `/models`).
+- **SGLang**: prefill **4,468 / 4,597 t/s**, decode **31.5 / 31.7 t/s** (logged re-measurement at 13:39); warning text `Config file not found … NVIDIA_GB10.json`; the older console figures 4,534–4,648 are no longer citable.
+- **NVFP4**: large shapes **3.6–4.3x** (4.212 / 4.132 / 3.610 / 4.286); small shapes mostly parity (0.82–0.97x) **except M1xN8192xK2048 at 3.28x**; error **13.9–16.7%**; FP8 column fails all 8 cells with `Unknown recipe`.
+- System facts: driver **595.71.05** (measured on both nodes); the **KV capacity line 19.65 GiB / 2,688,671 / 2.56x is retracted in full**.
+
+**Known gaps (new)**
+- The FP8 column of S1-02-g is still missing (needs `fp8_gemm_nt` or a different build).
+- Raw serve logs (48–59 KB) are not shipped; fetch them per N2 §10.
+
+## v1.0.8 — 2026-11-20 (A6/SE-03 mechanism revised + identity strings removed)
+
+**Conclusion revision (the only substantive change)**
+- `docs/N1_公告_v3_公开版.md`, header A6 item and §10 item 6: mechanism changed from "**spec-decode**" to "**MoE GEMM kernel primary + spec secondary**". Basis: P4-c (night of 11-20, 101+102 TP=2, 20 prompts × 5 reps, prefix cache off) — **rep-to-rep Δ = 0.0000 within the same arm** (`b12x`/`deep_gemm`, 100 pairs each, deterministic); **`b12x` vs `deep_gemm` prefill distributions differ by >0.1 nats on 20/20 prompts** (median 0.363, 0.128–1.396), answer-adjacent gen 20/20 (median 0.525); **spec is additive only** — spec off vs on is identical on 11/20 prompts, ≤0.49 on the other 9, while the spec arm's own rep drift 0.7063 is the only non-deterministic source ⇒ **kernel primary + spec secondary**; **direct proof (switching kernel selection) not done**.
+- `docs/SE-03_teacher-forcing判定.md` / `.en.md`: an 11-20 revision section is added and "Conclusion 3" / "Impact 1" are rewritten — **no "more accurate kernel" and no "spec by-product"** any more; only "the kernel-level distribution difference is reproducible on that prompt".
+- `docs/N1_闭合状态表.md` #6, `docs/N1_closure_status.en.md` #6 and `docs/N1_v3_executive_summary.en.md` A6 entry are synchronised.
+- **Boundary stated**: all four families hit at logit level (**A 6/6, B 5/5, C 3/3, D 6/6**); **the first token is identical on 20/20, but 16-token text is identical on only 13/20 and diverges within 16 tokens on 7/20** (A1, A2, A4, B4, C2, C3, D1, including numerically different answers) ⇒ **the cross-backend difference does reach the output layer**; sample 20 prompts × 5 reps, so "across families and to the output" is allowed, "one family is more accurate / the whole set changes" is not.
+
+**De-identification (new in v1.0.8)**
+- Account name and home paths: **9** absolute Windows user-directory paths → `$BASE\chats`; **11** home-directory experiment paths → `$BASE` (`scripts/attrib_tp_vs_dtype.py` keeps the `expanduser` default and contains no user name);
+- Hostnames: the two GB10 nodes and node 116 (all carried a user-name suffix) → `node101` / `node102` / `node116` (**machine numbers are all kept**; only account/host names are removed);
+- Re-scan: account name **0**, absolute home paths **0**, hostnames **0**; **machine numbers kept by agreement (count not stated; 526 / 536 / 573 tallies unreconciled)**.
+
+**Unchanged**
+- Every other scientific conclusion, all original numbers, and the 59-file structure of v1.0.7; in `data/` only two READMEs had hostnames replaced.
+
+
 ## v1.0.7 — 2026-11-20 (SM121 rerun: silent NaN downgraded to a version-scoped claim)
 
 **New artifact**
@@ -105,7 +141,7 @@
 
 **New evidence documents**: `docs/SE-03_teacher-forcing判定.md`, `docs/A8_GSM8K全量1319_结论.md`, `docs/A8_GGUF卸载门栓矩阵.md` (with the 2026-11-20 revision: the 12-cell subset shows "total constant, per-item not constant"); the "public-release note" at the top of `docs/N1_公告_v3_公开版.md` states that A6/A8 are closed while **not altering any original number**.
 
-**De-identification**: all 48 path occurrences (`~/sm12x`, `/home/james/sm12x`) on the release surface were replaced with `$BASE`; `scripts/attrib_tp_vs_dtype.py` now reads the `BASE` environment variable instead of hardcoding an absolute path. Rescan: IP / hostname / email / phone / MAC / UUID / token all **0**.
+**De-identification**: all 48 absolute home-directory path occurrences on the release surface were replaced with `$BASE`; `scripts/attrib_tp_vs_dtype.py` now reads the `BASE` environment variable instead of hardcoding an absolute path. Rescan: IP / hostname / email / phone / MAC / UUID / token all **0**.
 
 **Acceptance (2026-11-20 08:08)**: the archive was transferred, `unzip`-ed into an empty directory (original experiment directory untouched) and `scripts/run_matrix.sh` was run directly on FP8 + `triton` + TP=2 ⇒ `HEALTH_OK` in 80 s, **18/20 × 3**, failures `num_mul` + `logic_weekday`, three-round fingerprint `c8db9a77c6d7b58a40df9d66f75344e7` **byte-identical** to the 11-19 baseline, KV 1,355,776 / 165.50×. Artifacts in `data/reference_replay_1120/`.
 

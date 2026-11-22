@@ -39,6 +39,24 @@
 
 | Number | Why it is not in this kit |
 |---|---|
-| SGLang's −6.31 % throughput (denominator = `marlin`; the reverse reading is +6.74 %) | the raw artifacts are twelve files under 101 `~/sm12x/results/` (`sglang_result_*.json` + `gsm8k_*.jsonl`, all names in N1 §6), but the **paired executor is not shipped**, so results can be re-checked but not re-run in one command |
+| SGLang's −6.31 % throughput (denominator = `marlin`; the reverse reading is +6.74 %) | the raw artifacts are twelve files under 101 `$BASE/sm12x/results/` (`sglang_result_*.json` + `gsm8k_*.jsonl`, all names in N1 §6), but the **paired executor is not shipped**, so results can be re-checked but not re-run in one command |
 | The 5080 node's 18 % drift in 3 minutes | a different GPU model, noise evidence rather than a conclusion of this kit |
 | `flashinfer_cutile` capacity numbers (16/48 MiB) | needs a single run of that backend on a 32 G card; numbers are in the advisory body, scripts as in §2 |
+
+
+## 5. Evidence map for N2 (the GB10 dual-node MoE recipe)
+
+> Full English edition: `docs/N2_dual_node_recipe_v0.1.en.md` (numbers match this section digit for digit; the Chinese text wins).
+
+| Claim | Where in the kit | Cross-check / boundary |
+|---|---|---|
+| PP=2 works (NGC 26.08 + Ray + `--enforce-eager`); 270 s to serve, health 200 | `docs/N2_GB10双机MoE配方_v0.1.md` §3–§4 plus the `pp2_ngc_entry.sh` text in §14.2 | Container run flags in §14.1 (`--gpus all` **and** `--ipc=host`, either missing kills startup); raw logs (48–59 KB) are not shipped — fetch per §10 on the machines |
+| Single stream **14.71 / 14.72 t/s** (120 tok / 8.16 s); cold first request 4.4 discarded | §5.1 | Probe `pp2_e2e.py`; three logs `pp2_e2e_r{1,2,3}` |
+| 4-way concurrency **range 25–43 t/s** (25.5 / 43.2, `max_tokens 300`) | §5.1 | **No point estimate is publishable**; the 32.6 reading from 12:35 has no log and is history only |
+| KV **243,733 tokens / 29.75×**, PP0 24.32 / PP1 25.01 GiB | §5.1 + startup log | The 249,232 / 30.42× pair is the same operating point ±2%; the 19.65 GiB / 2,688,671 line was **retracted** (not reproducible) |
+| Cross-node **TP=2 works** (anemll 0.1.1 + `mp`, `:8888`); the long-context sweep ran on it | §6 plus §14.3/§14.4 | Receipt `tp2s.out` (HEALTH_OK 266 s); sweep source `d8a_longctx.json` recomputes cell by cell |
+| SGLang prefill **4,468 / 4,597 t/s**, decode **31.5 / 31.7 t/s** | §7 | Re-measured with logging at 13:39; warning text `Config file not found … NVIDIA_GB10.json`; older console figures 4,534–4,648 are not citable |
+| llama.cpp pp512 **831.78 ± 12.07** / tg128 **12.46 ± 0.05** | §7 | Reference stack only; scripts and weights are not shipped |
+| NVFP4 large shapes **3.6–4.3×**, small shapes mostly parity (one 3.28× exception), error 13.9–16.7%, FP8 column `Unknown recipe` | §8 | Needs `$BASE/envs/sm120-t211` (torch 2.14.0+cu130) and `cd $BASE/src/DeepGEMM-vllm` first |
+| anemll 0.1.1 PP=2 is dead (`stride 16`) | §9 | **No log, and cannot be re-run** — the `dsv4-abliterated` weights no longer exist on either node |
+

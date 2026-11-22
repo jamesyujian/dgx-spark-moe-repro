@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## v1.0.9 — 2026-11-22（N2：GB10 双机 MoE 配方 v0.1 进包 + D8 三项收口）
+
+**新增产物**
+- `docs/N2_GB10双机MoE配方_v0.1.md`（14 节 + §5.1 复测 + §14 附录）：PP=2 双路线、跨机 TP=2、长上下文八档、双栈、NVFP4 8 形状、覆盖边界、复现清单、8 条坑。§14 收录 `pp2_ngc_entry.sh` / `head_tp2s.sh` / `worker_tp2s.sh` 三份脚本原文。
+- `docs/N2_dual_node_recipe_v0.1.en.md`（英文全文版，数字逐位对齐，脚本代码块保持原文；中文为准）。
+- `docs/EVIDENCE_INDEX.md` / `.en.md` 新增 §5「N2 证据映射」9 行；README 增加文档索引与「D8 三项已进包」边界。
+
+**口径（本版写死，后续引用照此）**
+- **PP=2**：NGC 26.08 + Ray + `--enforce-eager` 打通，起服 270 s；单流 **14.71 / 14.72 t/s**（落盘，冷启首请求 4.4 弃）；4 并发**只给区间 25–43 t/s**（25.5 / 43.2，两次）；KV **243,733 token / 29.75×**。
+- **跨机 TP=2**：**anemll 0.1.1 + `mp` 可通**（HEALTH_OK 266 s），长上下文八档即在其上（权重 `/models/dsv4-abliterated`）；NGC 上的 TP=2 未测。原「vLLM 不支持跨节点 TP」仅对 PyPI 0.24 + `mp` 成立。
+- **anemll PP=2 判死**：cutedsl `state_cache.strides[0] … divisible by 16`；**原文无落盘且不可重跑**（两机 `dsv4-abliterated` 权重均不存在，镜像内亦无 `/models`）。
+- **SGLang**：prefill **4,468 / 4,597 t/s**、decode **31.5 / 31.7 t/s**（13:39 落盘复测）；warning 原文 `Config file not found … NVIDIA_GB10.json`；旧控制台 4,534–4,648 不再引用。
+- **NVFP4**：大形状 **3.6–4.3×**（4.212 / 4.132 / 3.610 / 4.286）；小形状多数打平（0.82–0.97×），**例外 M1×N8192×K2048 = 3.28×**；误差 **13.9–16.7%**；FP8 列 8 格 `Unknown recipe`。
+- 系统口径：驱动 **595.71.05**（101/102 实测）；**KV 容量行 19.65 GiB / 2,688,671 / 2.56× 已整行撤回**。
+
+**已知缺口（新增）**
+- S1-02-g 的 FP8 列未补；需换 `fp8_gemm_nt` 或换 build。
+- 起服原始日志（48–59 KB）不随包，按 N2 §10 清单在机器上取。
+
+## v1.0.8 — 2026-11-20（A6/SE-03 机制改判 + 身份信息脱敏）
+
+**结论修订（唯一实质改动）**
+- `docs/N1_公告_v3_公开版.md` 顶部 A6 条目与 §10 第 6 条：机制由「**spec-decode**」改为「**MoE GEMM kernel 主因 + spec 叠加**」。依据 P4-c（11-20 夜，101+102 TP=2，20 题 ×5 rep，关 prefix cache）：同配置同会话 **rep 间 Δ=0.0000**（`b12x`/`deep_gemm` 各 100 对，确定）；**`b12x` vs `deep_gemm` 的 prefill 分布 20/20 题差 >0.1 nats（中位 0.363、0.128–1.396）**，答案邻位 gen 20/20（中位 0.525）；**spec 只叠加**——关/开 spec 在 11/20 题 prefill 完全相同、余 9 题 ≤0.49，而 spec 臂自身 rep 间漂 0.7063 是非确定的唯一来源 ⇒ **kernel 主因 + spec 叠加**；**直接取证（kernel 选择切换）未做**。
+- `docs/SE-03_teacher-forcing判定.md` / `.en.md`：加 11-20 修订节，改写「结论 3」与「影响 1」——**不得再写"kernel 更准"或"spec 副产物"**，只写"该题 kernel 层分布差可复现"。
+- `docs/N1_闭合状态表.md` #6、`docs/N1_closure_status.en.md` #6、`docs/N1_v3_executive_summary.en.md` A6 条目同步改判。
+- **边界写明**：四族 **A 6/6、B 5/5、C 3/3、D 6/6 logit 全中**；**首 token 20/20 相同，16-token 文本 13/20 相同、7/20 在 16 token 内就分叉**（A1、A2、A4、B4、C2、C3、D1，含数值不同的答案）⇒ **跨后端差能落到输出层**；样本 20 题 ×5 rep，可写「跨族普遍、且会落到输出」，不可写「某族更准 / 全量都会变」。
+
+**脱敏（v1.0.8 新增）**
+- 账号名与家目录：**9 处** Windows 用户目录绝对路径 → `$BASE\chats`；**11 处** 家目录实验目录 → `$BASE`（`scripts/attrib_tp_vs_dtype.py` 保留 `expanduser` 默认，不含用户名）；
+- 主机名：两台 GB10 与 116 的主机名（均带用户名后缀）→ `node101` / `node102` / `node116`（**机号全部保留**，删的只是账号/主机名）；
+- 复扫结果：账号名 **0**、家目录绝对路径 **0**、主机名 **0**；**机号按约定保留**（计数口径不一，不写具体数量）。
+
+**不动的东西**
+- 其余科学结论、所有原始数字、v1.0.7 的 59 文件结构均未改；`data/` 只改两处 README 里的主机名。
+
 ## v1.0.7 — 2026-11-20（SM121 侧补跑：静默 NaN 降级为版本相关）
 
 **新增产物**
@@ -103,7 +138,7 @@
 
 **新增证据文档**：`docs/SE-03_teacher-forcing判定.md`、`docs/A8_GSM8K全量1319_结论.md`、`docs/A8_GGUF卸载门栓矩阵.md`（含 2026-11-20 修订段：子集 12 格"总分恒定、逐题不恒定"）；`docs/N1_公告_v3_公开版.md` 顶部加"公开版说明"，声明 A6/A8 已闭环但**不改原数字**。
 
-**脱敏**：发布面 48 处 `~/sm12x` / `/home/james/sm12x` 全部替换为 `$BASE`；`scripts/attrib_tp_vs_dtype.py` 改为读 `BASE` 环境变量（不再硬编码绝对路径）。复扫：IP / 主机名 / 邮箱 / 电话 / MAC / UUID / 密钥 全 0。
+**脱敏**：发布面 48 处家目录绝对路径（`~`/`/home` 下的实验目录）全部替换为 `$BASE`；`scripts/attrib_tp_vs_dtype.py` 改为读 `BASE` 环境变量（不再硬编码绝对路径）。复扫：IP / 主机名 / 邮箱 / 电话 / MAC / UUID / 密钥 全 0。
 
 **验收（2026-11-20 08:08）**：把本 zip 传到机器 → `unzip` 到空目录（未触碰原实验目录）→ 直接 `scripts/run_matrix.sh` 跑 FP8 + `triton` + TP=2 ⇒ `HEALTH_OK` 80 s、**18/20 × 3**、失败 `num_mul` + `logic_weekday`、三轮指纹 `c8db9a77c6d7b58a40df9d66f75344e7` 与 11-19 基准**逐字节相同**、KV 1,355,776 / 165.50×。产物收进 `data/reference_replay_1120/`。
 

@@ -7,7 +7,7 @@ reference_l1_semantic —— N1 §1.1 L1（DeepGEMM 直连 + 非 ue8m0）的 8 �
 
 来源
 ----
-脚本  : 116（`james-proart`，1 × RTX PRO 4500 32 GB），路径 `~/dgtest/s104_semantic.py`
+脚本  : 116（`node116`，1 × RTX PRO 4500 32 GB），路径 `~/dgtest/s104_semantic.py`
 取回  : 2026-11-20（脚本 mtime 2026-11-13 22:05）
 sha256: 脚本 36d3de6a81673fc1b2502f8ca0f333d572ae2dc3fc4d5c7c7964e2ee2484930e（10,443 B）
 
@@ -16,7 +16,7 @@ sha256: 脚本 36d3de6a81673fc1b2502f8ca0f333d572ae2dc3fc4d5c7c7964e2ee2484930e�
   sha256: 606279055f163886cfb66bdeb0a39b498aeb96c1173543c4532ada608fd5377d（1,495 B）
 
 结果 2（`s104_result_sm121_dg023post2.json`，2026-11-20 复跑）
-  机    : 101（`gx10-james01`，GB10 / SM121，aarch64）
+  机    : 101（`node101`，GB10 / SM121，aarch64）
   环境  : 容器 `sglang-sm12x:f832b5c39559`，`deep_gemm 0.2.3.post2`，CUDA 13.0.3
   sha256: 126bd77144b0f3d07391d4fde58b8c4582911c9212405d4e5ae5c01d5a15dec3（1,495 B）
   注意  : **不是同一份库**（2.8.1 vs 0.2.3.post2）。101/102 当日均无 2.8.1 的 aarch64 构建，
@@ -65,7 +65,7 @@ sha256: 脚本 36d3de6a81673fc1b2502f8ca0f333d572ae2dc3fc4d5c7c7964e2ee2484930e�
 §1.1 第 2 条原始表述是「SM121：`exit=0`、输出全 NaN、无任何 warning」（2026-11-13 现场记录）。
 该输出**至今没有结果文件**：2026-11-20 在 101 / 102 上全盘 `find *s104*`，只有
 `s104_deep_gemm.json`（那是 `deepseek-v4-flash` 的 logprob 采样，不是本脚本）、
-`s104_flashinfer_b12x.json`、`~/sm12x/s104*` 下的矩阵脚本。
+`s104_flashinfer_b12x.json`、`$BASE/sm12x/s104*` 下的矩阵脚本。
 
 2026-11-20 的补跑**部分闭合**了这一半：在 101 上用 `deep_gemm 0.2.3.post2` 跑同一脚本，
 拿到 8 条 verdict（就是本目录结果 2），但第 8 条是**断言**而非静默 NaN。因此：

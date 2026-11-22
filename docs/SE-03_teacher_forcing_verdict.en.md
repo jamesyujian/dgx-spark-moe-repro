@@ -2,6 +2,13 @@
 
 *English version of `docs/SE-03_teacher-forcing判定.md`. The Chinese file remains the reference.*
 
+> **2026-11-20 revision (v1.0.8) — the mechanism conclusion below has been overturned by P4; read this first.**
+> The 11-19 verdict ("the only relevant variable is spec-decode") holds only at the **text-output layer of that single prompt**. P4 (11-20, 101+102 TP=2) separated the layers:
+> - **same-config rep-to-rep Δ = 0.0000** (100 pairs, deterministic); **`b12x` vs `deep_gemm` prefill distributions differ by >0.1 nats on 20/20 prompts** (median 0.363, 0.128–1.396), answer-adjacent gen 20/20 (median 0.525) ⇒ the primary cause is the **MoE GEMM backend**, not spec;
+> - spec only adds ≈0.05 nats at the text layer (and swaps top-20 membership);
+> - additionally, **`deep_gemm` at the same config drifts ≈0.7 nats across service restarts while `b12x` does not** ⇒ the mechanism is **undetermined**; only the phenomenon may be stated.
+> ⇒ Mechanism = "**kernel primary + spec secondary**"; **Conclusion 3 and Impact 1 have been rewritten accordingly**. Boundary: sample 20 prompts × 5 reps (families 6/5/3/6); all four families hit at logit level; **the first token is identical on 20/20, but 16-token text matches on only 13/20 with 7/20 diverging within 16 tokens (including numerically different answers)** ⇒ "across families, and it does reach the output" is allowed, "one family more accurate / the whole set changes" is not; direct mechanism proof not done.
+
 - Date: 2026-11-19
 - Hosts: **101 (GB10 / SM121) head + 102 worker**, TP=2 / `--nnodes 2`, served-model `deepseek-v4-flash`, port 8888
 - Stack: `anemll/dspark-vllm-gx10:0.1.1`, DeepSeek-V4-Flash-DSpark, `quantization=deepseek_v4_fp8` (MoE experts mxfp4), `--speculative-config {"method":"dspark","num_speculative_tokens":5,"draft_sample_method":"probabilistic"}`, `--enable-prefix-caching`, `kv-cache-dtype nvfp4_ds_mla`
@@ -123,17 +130,17 @@ Method: for each configuration, restore head/worker scripts from the originals (
 
 All four configurations ran chat twice and reported `CHAT_SAME` (so this is not request-level randomness); all four `iso_probe` teacher-forced values are **identical to the digit**.
 
-**Conclusion 3 (mechanism localised)**: the only relevant variable is **spec-decode (`method=dspark`, `num_speculative_tokens=5`, `draft_sample_method=probabilistic`)**.
-- spec off: chat generation = `109876543`, exactly matching teacher forcing ⇒ **teacher forcing reflects the model's own distribution, and the method is trustworthy**;
-- spec on: chat generation = `109876463`, opposite to teacher forcing ⇒ **the spec verification path substitutes the model's preference with another value**;
+**Conclusion 3 (mechanism, revised 2026-11-20)**: the 11-19 reading ("the only relevant variable is spec-decode") holds only at the **text-output layer of that single prompt**. P4 separated the layers: **the primary cause is the MoE GEMM backend** — rep-to-rep difference within an arm is 0.0000 (100 pairs, deterministic); **`b12x` vs `deep_gemm` prefill distributions differ by >0.1 nats on 20/20 prompts** (median 0.363, 0.128–1.396), answer-adjacent gen 20/20 (median 0.525); **spec is additive only** (off vs on identical on 11/20, ≤0.49 on the rest; the spec arm's own rep drift 0.7063 is the only non-deterministic source) ⇒ mechanism = "**kernel primary + spec secondary**"; the earlier reading is withdrawn.
+- spec off: chat generation = `109876543`, exactly matching teacher forcing ⇒ **teacher forcing reflects the model's own distribution, and the method is trustworthy** (unchanged);
+- spec on: chat generation = `109876463`, opposite to teacher forcing ⇒ **the spec verification path substitutes the model's preference with another value** (unchanged — but it explains the text layer only, not the fact that the two logit distributions already differ);
 - `prefix-caching` and `chunked-prefill` are irrelevant to this phenomenon (still 463 when removed).
 
 **Impact (must enter publication wording)**:
-1. In SE-03, "deep_gemm answers 109876463 correctly" is **not a more accurate kernel** but a **by-product of spec-decode**; with spec off, deep_gemm also outputs the wrong 109876543.
+1. In SE-03, "deep_gemm answers 109876463 correctly" **must not be read as a more accurate kernel, nor attributed to spec alone**: spec is the secondary term; the primary difference sits in the GEMM backend's distribution (with spec off the two sides still differ by 0.36–0.61 nats at the logit level; only the text happens to agree on that prompt). ⇒ Externally, state only "**the kernel-level distribution difference is reproducible on that prompt**", never "which one is more accurate".
 2. At temp=0 this stack **does not preserve target greedy** — every accuracy/precision evaluation on this stack carries this bias.
 3. The first-token divergence (b12x 109 / deep_gemm 123, 5.38 / 2.88 nats) is unrelated to spec: under `spec_off` chat still starts with `1234567 × 89 =` ⇒ **Conclusion 1 stands**.
 
-**Still not evidenced**: only one prompt; where exactly spec fails to preserve (draft sampling vs rejection threshold vs verification batch shape) is not localised; each of the four configurations ran only 2 generations.
+**Still not evidenced (updated 2026-11-20 23:00)**: 11-19 had only one prompt; **P4-c extended it to 20 prompts × 5 reps covering four families (A 6/6, B 5/5, C 3/3, D 6/6 at logit level)**, yet **the first token is identical on 20/20 while 16-token text matches on only 13/20 and 7/20 diverge within 16 tokens (including numerically different answers)** ⇒ "the difference reaches the output" can be stated, "the whole set changes / one family is more accurate" cannot; **no direct mechanism evidence** (no controlled switch of kernel selection / autotune landing; the ≈0.7-nat cross-restart drift of `deep_gemm` is a phenomenon only); where exactly spec fails to preserve is not localised.
 
 Isolation-experiment evidence:
 ```
