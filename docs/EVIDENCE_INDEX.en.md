@@ -2,6 +2,27 @@
 
 *English version of `docs/EVIDENCE_INDEX.md`. The Chinese file remains the reference.*
 
+> **Canonical copy (2026-11-25).** This file and `EVIDENCE_INDEX.md` form the single bilingual canonical pair (digits identical, Chinese wins on wording). Five other same-named copies exist locally; all were **banner-marked and set read-only on 2026-11-25** (see §6) and must never be cited. All future updates go to this pair only.
+
+> **Pinned numbers (frozen 2026-11-25).** These are the sole external figures. If any document disagrees, **that document is wrong — fix the document, not this table.** Changing a row requires a new raw-artifact path and a new evidence grade.
+
+| Quantity | Canonical value | Citation constraint |
+|---|---|---|
+| 2-node KV pool | **243,733 tokens @ 8,192 = 29.75×** | 249,232 is a ±2 % same-operating-point note only; the 19.65 GiB / 2,688,671 line is retracted; **never write "declared ceiling"** |
+| 115 NVFP4 vs BF16 | **1.56×** (TP=2 · c4, 472.76 → 739.68) | **8.28× is permanently void**; always carry "TP=2 / c4" |
+| 115 TP scaling | **1.13×** (c4, 654.3 → 739.68) | Single-node PCIe basis only |
+| 101 / 102 NVFP4 vs BF16 | **2.47× / 2.37×** | Single-node TP=1 basis |
+| 115 concurrency | c1 **250.8** / c2 357.4 / c4 654.3 / c8 **1,017.2** / c12 1,314.02 / c16 **1,551.75** | Whole-segment means only; never cite a single window |
+| 101 concurrency | c1 **81.8** / c2 124.7 / c4 **188.2** / c8 267.9 | c4 is the 24 h reference; c8 multiplier has fallen to 1.42× |
+| Energy efficiency | **6.7** (GB10, GPU domain) / **3.7** (PRO 5000 c8, full-card TBP) / **5.19** (c16, full-card TBP) | 6.7 **is not** system efficiency; all three denominators must appear together |
+| Zero decay | **+0.37 / +0.16 / 0.00 %** (101 / 102 / 115) | First 1 h → last 3 h; 24.00 h, errs 0 |
+| Decode engine delta | at 8k SGLang leads marlin by **15.3–16.0 %**, b12x by **20.5–21.2 %**; at 16k/32k/64k it leads marlin by **17.3 / 19.6 / 24.6 %** | Median of 5 reps; the baseline must be named |
+| Network | **27.7 GB/s** (bidirectional aggregate; 25 GB/s one-way line rate); **NVLink = 1/14** | Both need their basis/reference stated |
+| Model size | **155.4 GiB** / 165.27 B params / **7.63 bit-per-param** | **Never write "156 GB original"** — that 156 GB *is* the official mixed-quantized release; the ≈330 GB original is a projection only |
+| Capability gate | **155.4 GiB > 121 G usable on one node (+34.4 GiB)** | Never write "fp8 at ~78 G would fit" — the arithmetic premise is void |
+| Community figures | 4-node ring single stream **90** / c16 **325** | Single self-media run, no re-check, no log — **all three caveats required** |
+| 116 | **Freezes after 13.84 h, mechanism undetermined** | Never write "suspected forward compat" or "driver lag"; 6 h does not cover the freeze point |
+
 > Path convention: `$WORK` = this kit's root; `$BASE` = the original experiment directory (the root used when these experiments ran; replace it with your own layout).
 > Principle: **no conclusion enters the body without a reproducible artifact.**
 
@@ -59,4 +80,20 @@
 | llama.cpp pp512 **831.78 ± 12.07** / tg128 **12.46 ± 0.05** | §7 | Reference stack only; scripts and weights are not shipped |
 | NVFP4 large shapes **3.6–4.3×**, small shapes mostly parity (one 3.28× exception), error 13.9–16.7%, FP8 column `Unknown recipe` | §8 | Needs `$BASE/envs/sm120-t211` (torch 2.14.0+cu130) and `cd $BASE/src/DeepGEMM-vllm` first |
 | anemll 0.1.1 PP=2 is dead (`stride 16`) | §9 | **No log, and cannot be re-run** — the `dsv4-abliterated` weights no longer exist on either node |
+
+## 6. Same-named files and freeze record (2026-11-25)
+
+Inventory: 7 `EVIDENCE_INDEX*.md` files locally. **Canonical set = 2 (this file + the Chinese file, updated and released together)**; the other 5 are historical copies, banner-marked and set `IsReadOnly = True`.
+
+| # | Path | Disposition | Basis |
+|---|---|---|---|
+| 1 | `2026-11-20\new-chat\sm12x-repro-release\docs\EVIDENCE_INDEX.md` | **Canonical (Chinese)** | 62 lines, 2026-11-22 13:48, carries the 2-node KV and all latest values |
+| 2 | `EVIDENCE_INDEX.en.md` (same dir) | **Canonical (English)** | Digit-identical to #1, released together |
+| 3 | `2026-11-18\new-chat-1\sm12x-repro\docs\EVIDENCE_INDEX.md` | Frozen | 41 lines, 11-19 09:55, oldest |
+| 4 | `2026-11-20\new-chat\_verify106\ext\dgx-spark-moe-repro\docs\EVIDENCE_INDEX.md` | Frozen | 44 lines, 11-20 09:40 |
+| 5 | same dir, `EVIDENCE_INDEX.en.md` | Frozen | same |
+| 6 | `2026-11-20\new-chat\_verify107\dgx-spark-moe-repro\docs\EVIDENCE_INDEX.md` | Frozen | 44 lines, 11-20 10:07 |
+| 7 | same dir, `EVIDENCE_INDEX.en.md` | Frozen | same |
+
+**Freeze criterion**: copies ≤44 lines and lacking `243,733` (i.e. missing the 2-node KV and the whole of §5), so they cannot coexist with the canonical set as a citation source. **Unfreeze procedure**: clear `IsReadOnly`, drop the banner, log purpose and date in this table — never edit numbers directly.
 

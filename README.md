@@ -9,6 +9,7 @@
 | 有什么 | 在哪 |
 |---|---|
 | **N1 精度安全公告（正文）** | `docs/N1_公告_v3_公开版.md`（中文，约 590 行）；英文执行摘要 `docs/N1_v3_executive_summary.en.md` |
+| **N6 边界白皮书（v1.0，2026-11-27）** | `docs/N6_boundary_whitepaper_v1.0.md` — 三台 SM12x 能干与不能干；配套 `docs/N6_evidence.jsonl`（54 行可脚本比对）、`scripts/repro_n6.sh`（一键同口径重跑）、`docs/N6_release_checklist.md`（四硬闸 + 九禁写自审表） |
 | **闭合状态表** | `docs/N1_闭合状态表.md` — 每条结论现在能写到什么程度、哪一格还空着 |
 | **数据索引（先看这个）** | `N1_data_index.md` — 每条结论 → 原始文件 / 条件 / 状态，37 行，不解释 |
 | **复现 harness** | `scripts/serve_fp8_tp2.sh`、`serve_nvfp4_tp1.sh`、`probe_20_prompts.py`、`eval_gsm8k.py`、`attrib_tp_vs_dtype.py`、`run_matrix.sh`；**L1 判定原件** `scripts/s104_semantic.py`（非 ue8m0 直连 DeepGEMM 的 8 用例，可独立跑） |
@@ -70,6 +71,11 @@ docs/
   A8_GGUF卸载门栓矩阵.md        12 格子集矩阵（含 11-20 修订：总分恒定、逐题不恒定）
   SE-03_teacher-forcing判定.md  SE-03 灰区归因（机制 = spec-decode）
   N2_GB10双机MoE配方_v0.1.md    ★ GB10 双机 MoE 配方 v0.1：PP=2/TP=2 两条路线、长上下文八档、双栈、NVFP4 8 形状、覆盖边界（英文版 `docs/N2_dual_node_recipe_v0.1.en.md`）
+  N6_boundary_whitepaper_v1.0.md ★ 边界白皮书 v1.0：三台 SM12x 能干与不能干（中文单语，有意不做机翻）
+  N6_evidence.jsonl             54 行证据（指标/值/等级/机器/镜像/证据路径/采集日期），可逐条比对
+  N6_release_checklist.md       发布自审表：四硬闸 + 九禁写 + 12 条映射
+  N6_release_notes.md           Release 正文与三步复核
+  N6_SHA256SUMS.txt             四物件 + 压测器的 sha256
 
 results/                         空目录，跑出来的东西按 run_<tag>/ 放，不要覆盖别人的
 ```

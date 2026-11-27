@@ -2,6 +2,30 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.1.0 — 2026-11-27 (N6 boundary whitepaper v1.0 enters the kit, with the four-piece evidence package)
+
+**New artifacts**
+- `docs/N6_boundary_whitepaper_v1.0.md`: **5,495 CJK chars / 364 lines**, ten sections plus appendices A/B; passed independent audit (three hard errors, six annotations, three leftovers all fixed). Chinese-only by design.
+- `docs/N6_evidence.jsonl`: **54 rows**, fields `metric/value/grade/machine/image digest/evidence path/capture date`; a third party can diff it row by row instead of reading the paper.
+- `scripts/repro_n6.sh`: pull the same image by registry digest → serve with the paper's parameters → run `s303_stress.py` to produce a same-caliber csv. It only makes the numbers independently re-runnable; it does not explain or tune.
+- `scripts/s303_stress.py`: the stress client enters the repo for the first time (`--port/--model/--stages/--out-dir/--data`).
+- `docs/N6_release_checklist.md`: four hard gates + nine forbidden claims + 12 mappings, checkable, shipped with the release.
+- `docs/EVIDENCE_INDEX.md` / `.en.md` **upgraded**: adds the 14-row "number default values" table (single external source of truth) and the §6 copy inventory / freeze record; the previous version was 62 lines with no such table.
+
+**Numbers fixed in this version**
+- **Model size**: 155.4 GiB (166,898,666,759 B / 48 shards), **165.27 B params**, **7.63 bit/param** (numerator = tensor body only, 146.8 GiB), whole-repo **8.08**, i.e. **1 byte per parameter**. The old "2 params/byte + 148.18 B + 138.0 GiB" triple is self-contradictory and withdrawn as a set.
+- **Does not fit one machine**: the thinnest official form, 155.4 GiB, exceeds the 121 G available (+34.4 GiB). Cross-node PP=2 runs it, but there is **no same-weight single-machine baseline**, so the "14.71 vs 79 = 18.6 %" comparison (cross-model subtraction) is **forbidden** and deleted from all four places.
+- **115 concurrency**: c1/c2/c4/c8/c12/c16 = **250.8 / 357.4 / 654.3 / 1,017.2 / 1,314.02 / 1,551.75** (TP=1, single card; GPU1 sat at 0 % throughout — do not halve).
+- **NVFP4 vs BF16**: 101 2.47×, 102 2.37×, **115 1.56× (TP=2, c4)**; **8.28× is permanently withdrawn**. **TP 1→2 gains only 1.13×** (PCIe, no NVLink).
+- **116**: silent freeze after 13.84 h, **mechanism unknown**; the 6 h positive evidence (524.73 t/s, errs 0) **does not constitute a fix**; the "driver lag / suspected forward compat" attribution is withdrawn because the two 24 h runs that did *not* freeze carry the same banner (101: 14/47 logs, 102: 14/30 logs).
+- **§9.3**: `max-num-seqs ≤ Mamba cache blocks` stays a **must** (capacity constraint; the criterion is now the machine's own serve log); `gpu-memory-utilization ≤ 0.82` is downgraded to a **recommendation**. "blocks = 115" appears in zero logs across four machines and has been removed as unsourced.
+- **Corrections**: 3.07× is c1-vs-c1 (3.48× is c4-vs-c4); decode at 8k splits its denominator ("15.3–16.0 % vs marlin, 20.5–21.2 % vs b12x"); "zero decay across the 30–70B class" is narrowed to "Qwen3.6-35B-A3B measured, 70B extrapolated"; §3.3 now reads "c1–c12 max ≤ 4.08 s; c16 = 4.32 s".
+
+**Known gaps (new)**
+- 3/4-node ring still "officially supported, not measured"; `deep_ep`/`mori` missing, no single-machine EP path.
+- Local memory bandwidth (spec 273 GB/s) not measured; only the community 207 figure is cited.
+- The whitepaper has **no English edition** (deliberate, to keep translation error out of the evidence chain); all other docs remain zh/en paired.
+
 ## v1.0.9 — 2026-11-22 (N2: the GB10 dual-node MoE recipe enters the kit; D8 closed out)
 
 **New artifacts**
