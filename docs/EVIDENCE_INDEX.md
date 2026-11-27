@@ -67,11 +67,11 @@ English：[`EVIDENCE_INDEX.en.md`](EVIDENCE_INDEX.en.md)（本文件为准）
 
 ## 5. N2（GB10 双机 MoE 配方）的证据映射
 
-> 英文全文版：`docs/N2_dual_node_recipe_v0.1.en.md`（数字与本节逐位一致，中文为准）。
+> 英文全文版：`docs/N2_dual_node_recipe_v0.2.en.md`（数字与本节逐位一致，中文为准）。
 
 | 结论 | 本包位置 | 旁证 / 边界 |
 |---|---|---|
-| PP=2 打通（NGC 26.08 + Ray + `--enforce-eager`），起服 270 s、health 200 | `docs/N2_GB10双机MoE配方_v0.1.md` §3–§4 + §14.2 附录 `pp2_ngc_entry.sh` 原文 | 容器 run 参数见 §14.1（`--gpus all --ipc=host` 缺一即死）；原始日志未随包（48–59 KB），按 §10 清单在机器上取 |
+| PP=2 打通（NGC 26.08 + Ray + `--enforce-eager`），起服 270 s、health 200 | `docs/N2_GB10双机MoE配方_v0.2.md` §3–§4 + §14.2 附录 `pp2_ngc_entry.sh` 原文 | 容器 run 参数见 §14.1（`--gpus all --ipc=host` 缺一即死）；原始日志未随包（48–59 KB），按 §10 清单在机器上取 |
 | 单流 **14.71 / 14.72 t/s**（120 tok / 8.16 s），冷启首请求 4.4 弃用 | 同上 §5.1 | 探针 `pp2_e2e.py`（随包 `scripts/` 未含，见 §10）；三次日志 `pp2_e2e_r{1,2,3}` |
 | 4 并发 **区间 25–43 t/s**（25.5 / 43.2，`max_tokens 300`） | 同上 §5.1 | **点值不可用**；12:35 那次 32.6 无落盘，仅存历史 |
 | KV **243,733 token / 29.75×**，PP0 24.32 / PP1 25.01 GiB | 同上 §5.1 与起服日志 | 12:32 的 249,232 / 30.42× 属同工况 ±2%，其中 19.65 GiB / 2,688,671 那行**已整行撤回**（不可复现） |

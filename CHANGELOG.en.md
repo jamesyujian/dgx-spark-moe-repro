@@ -2,6 +2,31 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.1.1 — 2026-11-27 (N2 recipe v0.1 → v0.2: aligned clause by clause with the whitepaper, no new measurements)
+
+**Nature of the change**: document alignment only. **No new numbers**, therefore no new items awaiting verification; every figure still takes `docs/EVIDENCE_INDEX.md`'s "fixed values" table as its single source.
+
+**New structure (both files)**
+- `docs/N2_GB10双机MoE配方_v0.2.md` (**595 lines**) / `docs/N2_dual_node_recipe_v0.2.en.md` (**593 lines**, numbers aligned digit for digit; the Chinese file wins).
+- **§0.1 number conventions**: seven fixed values (155.4 GiB / 165.27 B / 7.63 bit/param with the numerator being the tensor body only at 146.8 GiB / whole-repo 8.08 / 1 byte per parameter; 121 G vs 155.4; 14.71–14.72; 25.5–43.2; 243,733–29.75× and 249,232–30.42×; 261/270/209 s) plus three citation rules.
+- **§0.2 cross-index with the whitepaper**: N2's seven sections mapped section by section, marked "same source / N2-only / whitepaper-only".
+
+**Eight fixes**
+1. §0 "about 4 min" → **261 s (first attempt) / 270 s (re-run, container start) / 209 s (engine init)**.
+2. §4 health-200 note → "container start to ready **261 s**".
+3. §5.1 four-way → full range **25.5–43.2**, plus "both endpoints back-calculated, not alignable with any single latency, grade verified (second-hand, endpoints pending)".
+4. §7 SGLang lead → **denominator split** (15.3–16.0 % vs marlin, 20.5–21.2 % vs b12x; long context 17.3 / 19.6 / 24.6 %), with an explicit note that "15.3–21.2 % across the board" is wrong.
+5. §9 adds **EP**: flags open, `deep_ep`/`mori` missing, no single-machine path, untested (never write "EP is unavailable").
+6. §9 adds **3 / 4-node ring**: officially supported, unmeasured, CX-7 firmware ≥1.108.20.
+7. §9 adds **116**: frozen after 13.84 h with the mechanism unknown, 6 h does not constitute a fix, and the 8 shapes in §8 are a single kernel-level measurement that must not be extrapolated either way.
+8. §3 `util 0.82` → stated as a **measured operating point** (whitepaper §9.3 has downgraded that rule to a recommendation).
+
+**Two overclaims tightened**: ① **261 s is N2-only** (the whitepaper carries only 209 / 270); ② **the driver 595.71.05 appears only in N2 §1** — the whitepaper lists no driver version and only rejects "driver lag" as the freeze cause in §9.3.
+
+**Verification (occurrence counts, whitepaper / N2zh / N2en)**: `155.4 GiB` 13/3/3, `166,898,666,759` 1/1/1, `165.27 B` 6/1/1, `7.63 bit` 2/1/1, `8.08` 1/1/1, `243,733` 6/5/4, `249,232` 3/4/3, `29.75` 8/4/4, `30.42` 2/3/3, `14.71` 9/6/5, `25.5`+`43.2` 3/6/6, `270 s` 2/6/6, `209 s` 1/4/4. Forbidden-string sweep: `8.28` 0, `156 GB` 0, `2 params/byte` 0, "one fifth" 0; the single `18.6` is a decode value in the long-context table.
+
+**File changes**: README (zh+en) and `EVIDENCE_INDEX` (zh+en) now point at `v0.2`; the two `N2_*_v0.1.*` files leave the kit (history stays in the `v1.1.0` tag).
+
 ## v1.1.0 — 2026-11-27 (N6 boundary whitepaper v1.0 enters the kit, with the four-piece evidence package)
 
 **New artifacts**

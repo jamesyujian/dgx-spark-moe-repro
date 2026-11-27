@@ -70,7 +70,7 @@ docs/
   A8_GSM8K全量1319_结论.md      GGUF 双 dtype 全量 1319 的结论与复算
   A8_GGUF卸载门栓矩阵.md        12 格子集矩阵（含 11-20 修订：总分恒定、逐题不恒定）
   SE-03_teacher-forcing判定.md  SE-03 灰区归因（机制 = spec-decode）
-  N2_GB10双机MoE配方_v0.1.md    ★ GB10 双机 MoE 配方 v0.1：PP=2/TP=2 两条路线、长上下文八档、双栈、NVFP4 8 形状、覆盖边界（英文版 `docs/N2_dual_node_recipe_v0.1.en.md`）
+  N2_GB10双机MoE配方_v0.2.md    ★ GB10 双机 MoE 配方 v0.2：PP=2/TP=2 两条路线、长上下文八档、双栈、NVFP4 8 形状、覆盖边界（英文版 `docs/N2_dual_node_recipe_v0.2.en.md`）
   N6_boundary_whitepaper_v1.0.md ★ 边界白皮书 v1.0：三台 SM12x 能干与不能干（中文单语，有意不做机翻）
   N6_evidence.jsonl             54 行证据（指标/值/等级/机器/镜像/证据路径/采集日期），可逐条比对
   N6_release_checklist.md       发布自审表：四硬闸 + 九禁写 + 12 条映射
@@ -94,7 +94,7 @@ results/                         空目录，跑出来的东西按 run_<tag>/ �
 | `docs/A8_GSM8K全量1319_结论.md` | `docs/A8_GSM8K_full1319_conclusion.en.md` |
 | `docs/A8_GGUF卸载门栓矩阵.md` | `docs/A8_GGUF_offload_matrix.en.md` |
 | `docs/SE-03_teacher-forcing判定.md` | `docs/SE-03_teacher_forcing_verdict.en.md` |
-| `docs/N2_GB10双机MoE配方_v0.1.md` | `docs/N2_dual_node_recipe_v0.1.en.md` |
+| `docs/N2_GB10双机MoE配方_v0.2.md` | `docs/N2_dual_node_recipe_v0.2.en.md` |
 
 ---
 
@@ -186,8 +186,8 @@ done
 ## 6. 已知缺口（诚实清单）
 
 - 并发曲线（c=1…24）只有实测数字与日志，**没有一键脚本**（`vllm bench serve` 的参数组合在 `docs/EVIDENCE_INDEX.md` 里给了命令行原文）。
-- GGUF / llama.cpp 那一族**本包不收脚本与权重**，只收 **N2 双机配方里的对照读数**（pp512 831.78 ± 12.07 / tg128 12.46 ± 0.05，见 `docs/N2_GB10双机MoE配方_v0.1.md` §7）。
-- **D8 三项（长上下文八档 / SGLang·llama.cpp 双栈 / NVFP4 8 形状）已进本包**，全部走 `docs/N2_GB10双机MoE配方_v0.1.md`；原先「GGUF 一族不进包」的口径作废。
+- GGUF / llama.cpp 那一族**本包不收脚本与权重**，只收 **N2 双机配方里的对照读数**（pp512 831.78 ± 12.07 / tg128 12.46 ± 0.05，见 `docs/N2_GB10双机MoE配方_v0.2.md` §7）。
+- **D8 三项（长上下文八档 / SGLang·llama.cpp 双栈 / NVFP4 8 形状）已进本包**，全部走 `docs/N2_GB10双机MoE配方_v0.2.md`；原先「GGUF 一族不进包」的口径作废。
 - SM121（GB10）上的复现脚本与 SM120 共用，但**镜像版本不同**，见 `env/docker.md`。
 - `a6` teacher-forcing（灰区归因）脚本尚未验证过，**未纳入 scripts/**。
 - **FP8 + `triton` + TP=2 格的跨机复现做不出来**：现有第二台 SM120 机器是单卡 32 GB 且无 FP8 权重；SM121/GB10 机器同样没有 FP8 权重。能补的只有 NVFP4 格（见 §7.4，且它被证明不确定）。

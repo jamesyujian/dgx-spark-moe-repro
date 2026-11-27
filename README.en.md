@@ -9,6 +9,7 @@
 | Item | Where |
 |---|---|
 | **N1 precision-safety advisory (body)** | `docs/N1_公告_v3_公开版.md` (Chinese, ~590 lines); English executive summary `docs/N1_v3_executive_summary.en.md` |
+| **N6 boundary whitepaper (v1.0, 2026-11-27)** | `docs/N6_boundary_whitepaper_v1.0.md` — what three SM12x machines can and cannot do; ships `docs/N6_evidence.jsonl` (54 rows, machine-diffable), `scripts/repro_n6.sh` (one-command same-caliber re-run) and `docs/N6_release_checklist.md` (4 hard gates + 9 forbidden claims) |
 | **Closure status table** | `docs/N1_闭合状态表.md` — how far each conclusion can currently be stated, and which cell is still empty |
 | **Data index (start here)** | `N1_data_index.md` — each conclusion → raw file / conditions / status, 37 rows, no prose |
 | **Reproduction harness** | `scripts/serve_fp8_tp2.sh`, `serve_nvfp4_tp1.sh`, `probe_20_prompts.py`, `eval_gsm8k.py`, `attrib_tp_vs_dtype.py`, `run_matrix.sh`; **L1 verdict harness** `scripts/s104_semantic.py` (8 cases for non-ue8m0 feeding DeepGEMM directly; runs standalone) |
@@ -71,13 +72,18 @@ docs/
   A8_GSM8K全量1319_结论.md      conclusions and recomputation for the GGUF dual-dtype full 1319 run
   A8_GGUF卸载门栓矩阵.md        12-cell subset matrix (with the 2026-11-20 revision: total constant, per-item not)
   SE-03_teacher-forcing判定.md  SE-03 grey-zone attribution (mechanism = spec-decode)
-  N2_GB10双机MoE配方_v0.1.md    ★ GB10 dual-node MoE recipe v0.1: both PP=2 / TP=2 routes, the long-context sweep, the dual stack, the NVFP4 8-shape table, coverage boundaries (English: `docs/N2_dual_node_recipe_v0.1.en.md`)
+  N2_GB10双机MoE配方_v0.2.md    ★ GB10 dual-node MoE recipe v0.2: both PP=2 / TP=2 routes, the long-context sweep, the dual stack, the NVFP4 8-shape table, coverage boundaries (English: `docs/N2_dual_node_recipe_v0.2.en.md`)
+  N6_boundary_whitepaper_v1.0.md ★ boundary whitepaper v1.0: what three SM12x machines can and cannot do (Chinese only, deliberately untranslated)
+  N6_evidence.jsonl             54 evidence rows (metric / value / grade / machine / image digest / evidence path / capture date)
+  N6_release_checklist.md       self-audit table: 4 hard gates + 9 forbidden claims + 12 mappings
+  N6_release_notes.md           release body and the three-step verification
+  N6_SHA256SUMS.txt             sha256 of the four artifacts plus the stress client
   *.en.md                      English full translations of the documents above (N1 body → executive summary)
 
 results/                         empty; store outputs under run_<tag>/, never overwrite someone else's
 ```
 
-English translations sit next to the originals as `*.en.md`: `EVIDENCE_INDEX.en.md`, `NOISE_POLICY.en.md`, `N1_closure_status.en.md`, `A8_GSM8K_full1319_conclusion.en.md`, `A8_GGUF_offload_matrix.en.md`, `SE-03_teacher_forcing_verdict.en.md`, `N2_dual_node_recipe_v0.1.en.md`, plus the two root files `N1_data_index.en.md` and `CHANGELOG.en.md`, plus `N1_v3_executive_summary.en.md` — the advisory body itself exists in Chinese only (~590 lines) and that file is its English executive summary. Numbers are aligned digit for digit; where wording differs, the Chinese text wins.
+English translations sit next to the originals as `*.en.md`: `EVIDENCE_INDEX.en.md`, `NOISE_POLICY.en.md`, `N1_closure_status.en.md`, `A8_GSM8K_full1319_conclusion.en.md`, `A8_GGUF_offload_matrix.en.md`, `SE-03_teacher_forcing_verdict.en.md`, `N2_dual_node_recipe_v0.2.en.md`, plus the two root files `N1_data_index.en.md` and `CHANGELOG.en.md`, plus `N1_v3_executive_summary.en.md` — the advisory body itself exists in Chinese only (~590 lines) and that file is its English executive summary. Numbers are aligned digit for digit; where wording differs, the Chinese text wins.
 
 ---
 
@@ -169,8 +175,8 @@ Criteria:
 ## 6. Known gaps (honest list)
 
 - The concurrency curve (c=1…24) exists only as measured numbers and logs, **there is no one-shot script** (the exact `vllm bench serve` invocations are quoted in `docs/EVIDENCE_INDEX.md`).
-- The GGUF / llama.cpp family ships **no scripts or weights** here; only the **reference readings inside the N2 dual-node recipe** (pp512 831.78 ± 12.07 / tg128 12.46 ± 0.05, see `docs/N2_GB10双机MoE配方_v0.1.md` §7).
-- **All three D8 items (long-context 8-length sweep / SGLang+llama.cpp dual stack / NVFP4 8-shape) are now in this kit**, via `docs/N2_GB10双机MoE配方_v0.1.md`; the earlier "GGUF family not covered" wording is withdrawn.
+- The GGUF / llama.cpp family ships **no scripts or weights** here; only the **reference readings inside the N2 dual-node recipe** (pp512 831.78 ± 12.07 / tg128 12.46 ± 0.05, see `docs/N2_GB10双机MoE配方_v0.2.md` §7).
+- **All three D8 items (long-context 8-length sweep / SGLang+llama.cpp dual stack / NVFP4 8-shape) are now in this kit**, via `docs/N2_GB10双机MoE配方_v0.2.md`; the earlier "GGUF family not covered" wording is withdrawn.
 - The SM121 (GB10) reproduction scripts are shared with SM120, but the **image version differs**; see `env/docker.md`.
 - The `a6` teacher-forcing (grey-zone attribution) script was never validated and is **not included in `scripts/`**.
 - **Cross-machine reproduction of the FP8 + `triton` + TP=2 cell cannot be done**: the only other SM120 machine is single-GPU 32 GB without FP8 weights, and the SM121/GB10 machines also lack FP8 weights. Only the NVFP4 cell can be extended across machines (see §7.4, and it was proven non-deterministic).

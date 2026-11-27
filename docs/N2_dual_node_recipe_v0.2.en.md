@@ -1,18 +1,52 @@
 # GB10 Dual-Node MoE Recipe v0.1 (N2)
 
 > **Sanitization note for this kit version**: home directories are written `$BASE` (e.g. `p4/`, `envs/`), the weights directory is `$MODEL_DIR`, and the private dual-node IPs are `$HEAD_IP` (101) / `$WORKER_IP` (102). Machine numbers 101/102/115/116 are kept by agreement. The scripts in the appendix were substituted the same way — set `VLLM_HOST_IP` and `MASTER_ADDR` back to real values before running. The unsanitized original stays in the personal workspace and is not shipped.
-> Version v0.1 | 2026-11-22 | Hardware: GB10 (SM121, aarch64) × 2 (node101 / node102) | Model: DeepSeek-V4-Flash-DSpark (MoE, fp4 expert / fp8 KV)
+> Version **v0.2** | 2026-11-27 | Hardware: GB10 (SM121, aarch64) × 2 (node101 / node102) | Model: DeepSeek-V4-Flash-DSpark (MoE, fp4 expert / fp8 KV)
+> **What v0.2 changes**: no new measurements. Every edit aligns this document with the **N6 Boundary Whitepaper v1.0** (published 2026-11-27, tag `v1.1.0`) and adds cross-references between the two documents. **Where the two disagree, the whitepaper wins**; this document keeps only the N2-side reproduction detail.
 > This document ships **the reproduction chain + baseline numbers + coverage boundaries** only. No recommended configurations, no tuning advice. Every number states whether it is backed by a log that can be recomputed.
 
 ---
 
 ## 0. One-paragraph conclusion
 
-**Both cross-node parallel modes work, but on two different images**: PP=2 on **NGC 26.08**, cross-node TP=2 on **anemll 0.1.1** (details below). Container `nvcr.io/nvidia/vllm:26.08-py3` (vLLM 0.27.1) + `ray` inside the container + `--enforce-eager` + fp8 KV: head startup to health 200 takes about **4 min**; single stream **14.71 / 14.72 t/s** (logged), 4-way concurrency **only as a range, 25–43 t/s**, KV **243,733 tokens**.
+**Both cross-node parallel modes work, but on two different images**: PP=2 on **NGC 26.08**, cross-node TP=2 on **anemll 0.1.1** (details below). Container `nvcr.io/nvidia/vllm:26.08-py3` (vLLM 0.27.1) + `ray` inside the container + `--enforce-eager` + fp8 KV: head startup to health 200 measured **261 s** on the first attempt (12:28:11→12:32:32) and **270 s** on the re-run (container start 13:24:25, of which engine init is 209 s); single stream **14.71 / 14.72 t/s** (logged), 4-way concurrency **only as a range, 25.5–43.2 t/s (both endpoints back-calculated)**, KV **243,733 tokens / 29.75×**. **This release does not fit on one machine (155.4 GiB > 121 G), so no cross-node-versus-single-node speed ratio exists** (§0.1 rule 1).
 **Cross-node TP=2 also works**: `$BASE/p4/gen/head_tp2s.sh` (`--tensor-parallel-size 2 --nnodes 2 --node-rank … --distributed-executor-backend mp`) serves successfully on the **anemll 0.1.1** image; `logs/tp2s.out` records `SERVE_RESULT=HEALTH_OK elapsed=266s 11:58:31 / DEPLOY_OK tp2s`, and the long-context sweep in §6 ran on exactly that TP=2 server (`:8888`). **Note the mirror-image result**: on anemll, PP=2 does not work (the cutedsl path is not PP-aware, hard failure at `stride 16`); TP=2 on NGC was **not tested**. The earlier claim "vLLM does not support cross-node TP" holds only for **PyPI 0.24 + `mp`** (internal note from 07-09, no log on disk) and must not be generalised to NGC.
 
 ---
 
+### 0.1 Number conventions (same source as the whitepaper v1.0)
+
+Seven fixed values recur throughout this document. **The whitepaper’s "fixed values" table is the single source of truth** (mirrored in `docs/EVIDENCE_INDEX.md`); this table only maps to it and never sets a value of its own.
+
+| Item | Fixed value | Where here | Whitepaper |
+|---|---|---|---|
+| Release size | **155.4 GiB** (166,898,666,759 B / 48 shards) | §1, §9 | §2.2 |
+| Parameters / bit-width | **165.27 B**; **7.63 bit/param** (numerator = tensor body only, 146.8 GiB), whole repo **8.08**, i.e. **1 byte per parameter** | §9 | §2.2 |
+| Single machine vs size | 121 G available vs 155.4 GiB, **short by 34.4 GiB ⇒ does not fit** | §9 | §2 |
+| PP=2 single stream | **14.71 / 14.72 t/s** (120 tokens / 8.16 s / 8.15 s; the 4.4 t/s cold first request must be excluded) | §0, §5, §5.1 | §7 |
+| PP=2 four-way | **range only, 25.5–43.2** (44.91 s / 24.33 s, **both endpoints back-calculated**) | §0, §5, §5.1 | §7.1 |
+| KV @8k | **243,733 tokens = 29.75×** (PP0 24.32 / PP1 25.01 GiB); second value **249,232 = 30.42×** (+2.2%) | §0, §5, §5.1 | §7 (hard gate 1) |
+| Startup time | first attempt **261 s** (12:28:11→12:32:32); re-run **270 s** (container start 13:24:25→13:28:55), of which **engine init 209 s** (05:25:26→05:28:55 UTC); **261 s is N2-only (first attempt)** | §0, §4, §5.1 | §7 footnote (209 / 270) |
+
+Three citation rules (breaking any of them puts this document at odds with the whitepaper):
+
+1. **Never write a "1→2 speed-up"**: the release does not fit on one machine, so **no same-weight single-node baseline exists**; equally, do **not** subtract 14.71 from another model (e.g. 79) to derive a discount rate — that is cross-model subtraction, forbidden by whitepaper §7.1.
+2. **Report four-way as a range only**, and state that the endpoints are back-calculated from 44.91 s / 24.33 s and **cannot be aligned with any single point value** (the whitepaper grades this row "verified (second-hand, endpoints pending)").
+3. **Always state the start point** for durations: 270 s (container) and 209 s (engine init) are not interchangeable; wherever this document used to say "about 4 min", read 261 s / 270 s.
+
+### 0.2 Cross-index with the whitepaper
+
+| N2 section | Whitepaper v1.0 | Relationship |
+|---|---|---|
+| §1 hardware / driver | §2 (driver number is N2-only) | machine capability in whitepaper §2; **the driver 595.71.05 appears only in §1 here** — the whitepaper lists no driver version and only discusses (and rejects) "driver lag" as the freeze cause in §9.3 |
+| §3 launch flags (`util 0.82`) | §9.3 item 2 | **the whitepaper has downgraded `util ≤ 0.82` to a recommendation**; 0.82 here is the **measured operating point** for PP=2, not advice |
+| §5 / §5.1 baselines | §7, §7.1 | same source, aligned digit for digit |
+| §6 long-context sweep | — (not in the whitepaper) | N2-only: DS-V4 readings on TP=2; **do not mix with the Qwen3.6-35B curve in whitepaper §3** |
+| §7 dual stack | §6 | same source; the SGLang decode lead now **splits its denominator** (15.3–16.0 % vs marlin, 20.5–21.2 % vs b12x) |
+| §8 NVFP4 8 shapes | §4 | same source; the whitepaper states the machine-level "NVFP4 ≈ 2.4×", this document carries the kernel-level 8 cells |
+| §9 coverage boundaries | §9.1–§9.3 | complementary: detail here, cross-machine boundaries there |
+
+---
 ## 1. Hardware / driver / baseline
 
 | Item | Value |
@@ -91,7 +125,7 @@ Measured timeline (node-side timestamps):
 | Event | Time |
 |---|---|
 | head container started | **12:28:11** |
-| health 200 | **12:32:32** (about 4 min of startup, of which the 990-kernel DeepGEMM warmup takes 55 s) |
+| health 200 | **12:32:32** (container start to ready **261 s**, of which the 990-kernel DeepGEMM warmup takes 55 s) |
 | both containers removed | head `exit 0` 12:58:42 / worker `exit 137` 12:59:02 |
 
 **Cross-node TP=2 startup (the other route, anemll 0.1.1 + `mp`, `:8888`)**: the order is reversed versus PP=2 — **worker first** (`worker_tp2s.sh` 11:53:59), then head (`head_tp2s.sh` 11:54:04), giving `SERVE_RESULT=HEALTH_OK elapsed=266s 11:58:31 / DEPLOY_OK tp2s` (`$BASE/p4/logs/tp2s.out`). About 4.4 min to serve. Note that the leading `confirm: tp=1 pp=1` line in `tp2s.out` / `pp2_run.out` is a fixed echo from the wrapper, **does not match the real arguments in `gen/*.sh`, and must not be used as parameter evidence**.
@@ -125,11 +159,11 @@ Same arguments, restarted once (13:24:25 start → 13:28:55 `HTTP server started
 Reading corrections (important):
 
 - **Single stream 14.7 is reproducible** and agrees with the 12:32 set (14.72 / 14.79 / 14.82); the cold first request reaches only 4.4 t/s, so **any single-stream citation must drop the first request**.
-- **4-way concurrency swings wildly**: two adjacent runs with identical arguments gave 25.5 and 43.2 (a 1.7× spread), with the 32.6 reading from 12:35 sitting in the middle ⇒ **this metric must not be published as a point value, only as the range 25–43 t/s, with the number of runs stated.** The original "32.6 / 8.16 per stream" stays as the 12:35 reading (unlogged).
+- **4-way concurrency swings wildly**: two adjacent runs with identical arguments gave 25.5 and 43.2 (a 1.7× spread), with the 32.6 reading from 12:35 sitting in the middle ⇒ **this metric must not be published as a point value, only as the range 25.5–43.2 t/s, with the number of runs stated.** Both endpoints are back-calculated from window averages (44.91 s / 24.33 s) and cannot be aligned with any single request latency; the whitepaper grades this row "verified (second-hand, endpoints pending)". The original "32.6 / 8.16 per stream" stays as the 12:35 reading (unlogged).
 - KV this run is 243,733 / 29.75× versus 249,232 / 30.42× at 12:32 — a 2% difference from memory headroom, not from a version change.
 - The log files are written by root inside the container (`-rw-r--r-- root`), readable but not overwritable from the host; `sudo chown $USER:$USER` them before reusing.
 
-> 14.8 t/s and "the long-context numbers measured under TP=2" are different operating points: the 18–20 t/s decode below belongs to TP=2 with spec on and cannot be compared directly with the PP=2 single-stream 14.8.
+> 14.8 t/s and "the long-context numbers measured under TP=2" are different operating points: the 18–20 t/s decode below belongs to TP=2 with spec on and cannot be compared directly with the PP=2 single-stream 14.8; **nor should it be compared with the Qwen3.6-35B concurrency curve in whitepaper §3** (different model, quantisation and parallelism).
 
 ---
 
@@ -159,7 +193,7 @@ Conclusion: TTFT grows roughly linearly with length; **320k measured 87.5 s to f
 | Stack | How it serves | Readings | Boundary |
 |---|---|---|---|
 | llama.cpp | `$BASE/llama.cpp/build-sm121/bin` (requires `LD_LIBRARY_PATH` pointing there), Qwen3.6-27B Q4_K_M fully offloaded (15.65 GiB / ngl 99) | **pp512 831.78 ± 12.07 t/s**, **tg128 12.46 ± 0.05 t/s**; device detected as `NVIDIA GB10 cc 12.1 VRAM 124546 MiB` | GGUF only; log `$BASE/p4/logs/d8b_llamacpp_bench.log` (12:08:54) |
-| SGLang | image `sglang-sm12x:f832b5c39559`, Qwen3.6-35B-A3B-BF16, `--tp 1 --mem-fraction-static 0.80 --port 30000` | **13:39 re-measured (logged)**: prefill **4,468 / 4,597 t/s** (r2/r3), decode **31.5 / 31.7 t/s**, TTFT **0.088 / 0.086 s**; r1 cold start 971.8 t/s / 0.405 s (discarded, it is the first request after graph capture). 394-token prompt / 128 output tokens | Startup logged the warning verbatim: `Using default MoE kernel config. Performance might be sub-optimal! Config file not found at …/triton_3_8_0/E=256,N=512,device_name=NVIDIA_GB10.json` (no GB10 triton config); `max_total_num_tokens=659,775`, `context_len=262,144`, `available_gpu_mem=20.53 GB`; decode CUDA graph bs=[1,2,4,8,12,16,24,32,37]. **Cannot run DeepSeek-V4** (capability judgement, no log). The older console readings 4,534–4,648 / 31.9 are kept as history and are not citable |
+| SGLang | image `sglang-sm12x:f832b5c39559`, Qwen3.6-35B-A3B-BF16, `--tp 1 --mem-fraction-static 0.80 --port 30000` | **13:39 re-measured (logged)**: prefill **4,468 / 4,597 t/s** (r2/r3), decode **31.5 / 31.7 t/s**, TTFT **0.088 / 0.086 s**; r1 cold start 971.8 t/s / 0.405 s (discarded, it is the first request after graph capture). 394-token prompt / 128 output tokens | Startup logged the warning verbatim: `Using default MoE kernel config. Performance might be sub-optimal! Config file not found at …/triton_3_8_0/E=256,N=512,device_name=NVIDIA_GB10.json` (no GB10 triton config); `max_total_num_tokens=659,775`, `context_len=262,144`, `available_gpu_mem=20.53 GB`; decode CUDA graph bs=[1,2,4,8,12,16,24,32,37]. **Cannot run DeepSeek-V4** (capability judgement, no log). The older console readings 4,534–4,648 / 31.9 are kept as history and are not citable. **The relative lead now splits its denominator** (whitepaper §6): decode at 8k beats marlin by **15.3–16.0 %** and b12x by **20.5–21.2 %**; at 16k / 32k / 64k it beats marlin by **17.3 / 19.6 / 24.6 %**. Writing "15.3–21.2 % across the board" is wrong — the denominators differ |
 
 ---
 
@@ -198,12 +232,15 @@ How to read it:
 - **Cross-node TP=2 direction**: anemll 0.1.1 + `mp` **serves and runs** (§6 ran on it, `tp2s.out` shows HEALTH_OK); the earlier conclusion "vLLM does not support cross-node TP" holds only for **PyPI 0.24 + `mp`** (07-09 internal note, no log). **TP=2 on NGC 26.08 was not tested today** — do not write "NGC can't do it either" or "vLLM can't do it at all".
 - **PyPI vLLM 0.24**: DeepGEMM is incompatible with the NVFP4 modelopt `scale_fmt=ue8m0` path — **internal note (07-09), no log, cite it only with this caveat**.
 - **SGLang running DeepSeek-V4**: unsupported — **internal note, no log** (that container has been deleted).
+- **Expert parallelism (EP) has no usable path on this platform** (2026-11-25, inspection only): vLLM 0.31.0 inside the 26.10 image exposes `--enable-expert-parallel` / `--enable-eplb` / `--all2all-backend` at CLI and model level with **no architecture block on SM120**, but **`deep_ep` and `mori` are MISSING** and the usable all2all backends require **TP>1 and DP>1** ⇒ single-machine TP=1/DP=1 degrades to `allgather_reducescatter`. **Untested.** Details in `S3-03 v2` §17.3 and whitepaper §9.4. Do not write "EP is unavailable" — it is **missing backends, no applicable path**.
 
 **Untested / not promised**
 
 - Only **101/102 with the same GB10 model + same image + same entrypoint version** is guaranteed; other machines, drivers or image versions are outside coverage.
 - `max-model-len` is verified only up to 8192 for PP=2; PP=2 beyond that is untested (the sweep in §6 is TP=2 data).
 - Text-layer consistency, in the user-corrected wording that must be quoted as is: **first token identical in 20/20; 16-token text identical in 13/20, with 7/20 diverging inside 16 tokens (including answers whose numeric value differs) ⇒ cross-backend differences can reach the output layer, they simply have not been extended to the full question set yet**. Never write "does not reach the output" or "does not affect the output".
+- **3 / 4-node ring**: officially supported (3-node triangle, 4-node head-to-tail ring, manual configuration), **not measured in this kit**; prerequisite **CX-7 firmware ≥ 1.108.20** — below that, throughput drops to 10–16 Gbps with an AER fatal.
+- **24 h stability of 116 (PRO 4500)**: started 2026-11-24, **silent freeze after 13.84 h, mechanism unknown** (no OOM / MCE / AER / Xid, oom-kill 0); the 6 h re-run was clean (4,291/4,320 windows, errs 0, 524.73 t/s) but **does not constitute a fix**. The 8 shapes in §8 happened to run on 116, but that is a **single kernel-level measurement** unrelated to long-run stability — neither may be extrapolated to the other. See whitepaper §9.3 and `S3-03 v2` §16.
 
 ---
 
@@ -240,15 +277,17 @@ How to read it:
 
 ---
 
-## 12. Boundaries that had to be handled before publication (now done)
+## 12. Publication boundaries (handled as of v0.2)
 
 - `README:181` used to say "GGUF / llama.cpp is not covered by this kit at all" — §7 cites llama.cpp numbers, so the wording was rewritten to "no scripts or weights shipped, only the reference readings". **Done in v1.0.9.**
 - `docs/EVIDENCE_INDEX.md:42` used to treat SGLang only as an N1 §6 comparison — §7 now ships as part of the kit, so it was registered as N2 evidence there. **Done in v1.0.9 (new §5, 9 rows).**
+- **New in v0.2**: `EVIDENCE_INDEX` grows to **99 lines** with a new 14-row "**fixed values**" table — all seven values from §0.1 are registered there, and **either document must update the table first**; the README index now points at `v0.2`, and the old `v0.1` files no longer ship (history stays in git).
 
 ---
 
 ## 13. Change log
 
+- **Revision r4 / v0.2 (2026-11-27, D17; no new measurements, number alignment only)**: ① new **§0.1 number conventions** (seven fixed values + three citation rules: no cross-model subtraction, four-way as a range with back-calculated endpoints, durations always state their start point) ② new **§0.2 cross-index with the whitepaper** (section-by-section, marking "same source / N2-only / whitepaper-only") ③ §0 startup time replaced "about 4 min" with **261 s (first) / 270 s (re-run, container) / 209 s (engine init)** ④ §5.1 four-way range now marked **back-calculated endpoints**, grade "verified (second-hand, endpoints pending)" ⑤ §7 SGLang lead now **splits its denominator** (15.3–16.0 % vs marlin, 20.5–21.2 % vs b12x; long context 17.3 / 19.6 / 24.6 %) ⑥ §9 adds three boundaries: **EP missing backends / no path**, **3–4 nodes unmeasured + CX-7 firmware ≥1.108.20**, **116 frozen after 13.84 h, mechanism unknown** ⑦ §12 updated for v0.2 (`EVIDENCE_INDEX` 99 lines + fixed-value table) ⑧ §3 `util 0.82` stated as a **measured operating point** (whitepaper §9.3 has downgraded that rule to a recommendation).
 - **Revision r2 (2026-11-22, after audit receipt §16; product version stays v0.1)**: ① "cross-node TP=2 unavailable" corrected to "anemll 0.1.1 + `mp` works and the sweep ran on it; TP=2 on NGC untested" ② driver corrected to **595.71.05** per the machines ③ added `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` / `HF_HUB_OFFLINE=1` ④ §5 three readings marked "unlogged" ⑤ §7 SGLang prefill start corrected, "logged" wording replaced by "console, unlogged" ⑥ §8 added environment reproducibility (only t211 imports) ⑦ §10 added the TP=2 scripts and receipts, the host weights path and the `/models` trap ⑧ PyPI 0.24 and "SGLang cannot run V4" marked as internal notes ⑨ added "`cd $BASE/src/DeepGEMM-vllm` first" plus the shared ABI failure under 2.13.0/2.9.0 ⑩ added §14 appendix (three verbatim launch scripts + the run flags that actually worked) ⑪ added §5.1 (single stream 14.71/14.72 logged; 4-way 25.5/43.2 swings, point value withdrawn in favour of a range) ⑫ added §7 SGLang 13:39 logged re-measurement (prefill 4,468/4,597, decode 31.5/31.7, verbatim warning, `max_total_num_tokens` 659,775) ⑬ recorded "the anemll text can no longer be re-run for evidence" (no `dsv4-abliterated` weights on either node).
 - **Revision r3 (2026-11-22, publication edit)**: §0 figures aligned with §5.1; §9/§12 boundaries updated; this English edition added.
 

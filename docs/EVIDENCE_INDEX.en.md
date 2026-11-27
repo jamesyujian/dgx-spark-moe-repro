@@ -67,11 +67,11 @@
 
 ## 5. Evidence map for N2 (the GB10 dual-node MoE recipe)
 
-> Full English edition: `docs/N2_dual_node_recipe_v0.1.en.md` (numbers match this section digit for digit; the Chinese text wins).
+> Full English edition: `docs/N2_dual_node_recipe_v0.2.en.md` (numbers match this section digit for digit; the Chinese text wins).
 
 | Claim | Where in the kit | Cross-check / boundary |
 |---|---|---|
-| PP=2 works (NGC 26.08 + Ray + `--enforce-eager`); 270 s to serve, health 200 | `docs/N2_GB10双机MoE配方_v0.1.md` §3–§4 plus the `pp2_ngc_entry.sh` text in §14.2 | Container run flags in §14.1 (`--gpus all` **and** `--ipc=host`, either missing kills startup); raw logs (48–59 KB) are not shipped — fetch per §10 on the machines |
+| PP=2 works (NGC 26.08 + Ray + `--enforce-eager`); 270 s to serve, health 200 | `docs/N2_GB10双机MoE配方_v0.2.md` §3–§4 plus the `pp2_ngc_entry.sh` text in §14.2 | Container run flags in §14.1 (`--gpus all` **and** `--ipc=host`, either missing kills startup); raw logs (48–59 KB) are not shipped — fetch per §10 on the machines |
 | Single stream **14.71 / 14.72 t/s** (120 tok / 8.16 s); cold first request 4.4 discarded | §5.1 | Probe `pp2_e2e.py`; three logs `pp2_e2e_r{1,2,3}` |
 | 4-way concurrency **range 25–43 t/s** (25.5 / 43.2, `max_tokens 300`) | §5.1 | **No point estimate is publishable**; the 32.6 reading from 12:35 has no log and is history only |
 | KV **243,733 tokens / 29.75×**, PP0 24.32 / PP1 25.01 GiB | §5.1 + startup log | The 249,232 / 30.42× pair is the same operating point ±2%; the 19.65 GiB / 2,688,671 line was **retracted** (not reproducible) |
