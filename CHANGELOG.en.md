@@ -2,6 +2,32 @@
 
 *English version of `CHANGELOG.md`. The Chinese file remains the reference; where wording differs, the Chinese text wins.*
 
+## v1.1.2 — 2026-11-28 (116 long-run re-test closed at 16 h: "6 h" becomes two-tier evidence "6 h + 16 h")
+
+**Nature of change**: **new measurement** (116's first instrumented long-run re-test), but **no new published fixed values** — every number still has the fixed-value table in `docs/EVIDENCE_INDEX.md` as its single source of truth. **116's verdict level is unchanged**: the freeze mechanism is still undetermined.
+
+**New evidence (116 / RTX PRO 4500 32 G / SM120 / image 26.10)**
+- 16 h re-test: **2026-11-27 14:12:23 → 11-28 06:12:18**, **15.9986 h / 11,442 windows / 94,071 requests / 30,309,916 tokens / 0 errors / 0 gaps >10 s**.
+- Throughput **526.22 t/s** window mean (p50 526.87; min 257.20 = first-window ramp; max 775.12), **last 10 windows 541.82 ⇒ no decay**; **+0.28 %** vs the 6 h run's 524.73.
+- Temperature mean **70.1** / peak **73.0 °C**; power mean **194.7 W**; VRAM 28,451 → **28,483 MiB** (+32 MiB / +0.11 %); latency mean 2.489 s.
+- dmesg / journal **Xid 0**; throttle events only SW power cap (`0x4`) + trailing idle (`0x400`), **no hw_thermal / hw_slowdown**.
+- All 6 out-of-band dumps are **`GONE` after the stress run ended on schedule** (`proc_*` count 0) — **not freezes**.
+- **Cross-point verdict**: the 13.84 h freeze point fell at **≈04:04** in this run; zero errors afterwards ⇒ **"not reproduced in 16 h" holds**.
+
+**Wording rules (do not upgrade; pinned by this release)**
+- ✅ May write: "16 h continuous, 0 errors, 0 gaps, **crossed the 13.84 h freeze point without reproducing it**".
+- ❌ May not write "fixed" — mechanism unknown; 16 h only widens the non-reproduction window from 6 h to 16 h.
+- ❌ May not write "16 h thermally/throughput stable" — single run, ambient temperature unmeasured.
+
+**Five fixes (calendar alignment)**
+1. Whitepaper §0 gate item 4: 116 verdict gains the 16 h non-reproduction, and explicitly bans "fixed".
+2. Whitepaper §9.3 item 1: "sole positive evidence = 6 h" → **two tiers** (6 h + the 16 h numbers + telemetry self-check).
+3. Whitepaper appendix A / B: add the `S3-03 v2.2 §16.2` evidence path and a 2026-11-28 note.
+4. `N2` (zh/en) §9: add the 16 h, and **correct the start date** (`2026-11-24` → **started 11-23 16:30, stopped writing 11-24 06:28:33**).
+5. `EVIDENCE_INDEX` (zh/en) 116 row + three rows of `N6_evidence.jsonl` (**still 54 lines**): verdict becomes "froze once + 16 h crossed without reproducing", plus a ban on "fixed"; the jsonl freeze row gets the same date correction.
+
+**Unchanged**: `v1.0.9 = be8aa32` untouched; `N6_release_checklist.md` and both earlier release notes are historical snapshots for v1.1.0 / v1.1.1 and stay as-is.
+
 ## v1.1.1 — 2026-11-27 (N2 recipe v0.1 → v0.2: aligned clause by clause with the whitepaper, no new measurements)
 
 **Nature of the change**: document alignment only. **No new numbers**, therefore no new items awaiting verification; every figure still takes `docs/EVIDENCE_INDEX.md`'s "fixed values" table as its single source.

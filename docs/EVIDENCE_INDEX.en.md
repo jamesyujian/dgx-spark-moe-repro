@@ -21,7 +21,7 @@
 | Model size | **155.4 GiB** / 165.27 B params / **7.63 bit-per-param** | **Never write "156 GB original"** — that 156 GB *is* the official mixed-quantized release; the ≈330 GB original is a projection only |
 | Capability gate | **155.4 GiB > 121 G usable on one node (+34.4 GiB)** | Never write "fp8 at ~78 G would fit" — the arithmetic premise is void |
 | Community figures | 4-node ring single stream **90** / c16 **325** | Single self-media run, no re-check, no log — **all three caveats required** |
-| 116 | **Freezes after 13.84 h, mechanism undetermined** | Never write "suspected forward compat" or "driver lag"; 6 h does not cover the freeze point |
+| 116 | **Froze once after 13.84 h on 2026-11-23, mechanism undetermined**; **the 16 h re-run crossed that point without reproducing it (not a fix)** | Never write "suspected forward compat", "driver lag", or **"fixed"**; 6 h does not cover the freeze point, and 16 h without reproduction still does not determine the cause |
 
 > Path convention: `$WORK` = this kit's root; `$BASE` = the original experiment directory (the root used when these experiments ran; replace it with your own layout).
 > Principle: **no conclusion enters the body without a reproducible artifact.**
